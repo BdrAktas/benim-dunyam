@@ -10,6 +10,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,6 +37,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.material.icons.rounded.AccountBalanceWallet
 import androidx.compose.material.icons.rounded.DirectionsCar
 import androidx.compose.material.icons.rounded.Flight
 import androidx.compose.material.icons.rounded.Groups
@@ -42,12 +46,17 @@ import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.MonitorHeart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.rounded.TrendingUp
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -82,6 +91,7 @@ import com.simay.lifebank.ui.theme.YkbCardPurple3
 import com.simay.lifebank.ui.theme.YkbDomainAilem
 import com.simay.lifebank.ui.theme.YkbDomainAracim
 import com.simay.lifebank.ui.theme.YkbDomainEvim
+import com.simay.lifebank.ui.theme.YkbDomainParam
 import com.simay.lifebank.ui.theme.YkbDomainSaglik
 import com.simay.lifebank.ui.theme.YkbDomainSeyahat
 import com.simay.lifebank.ui.theme.YkbNavyDeep
@@ -156,6 +166,11 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
             timeLabel = "BES katk\u0131 \u00B7 bu ay",
             moneyLabel = "\u0130lk Param \u20BA42.3K",
             alertCount = 0, alertColor = Moss, color = Terra),
+        // Param — vadeli mevduat + net varlık + Findeks. Vade bitmek üzere → 1 fırsat.
+        WorldCard("param", Icons.Rounded.AccountBalanceWallet, "Param",
+            timeLabel = "Vade 5 g\u00fcn",
+            moneyLabel = "Net varl\u0131k \u20BA624K",
+            alertCount = 1, alertColor = Honey, color = Honey),
     )
 
     val smartFeed = listOf(
@@ -588,6 +603,7 @@ private fun domainBg(id: String): Color = when (id) {
     "saglik" -> YkbDomainSaglik
     "seyahat" -> YkbDomainSeyahat
     "ailem" -> YkbDomainAilem
+    "param" -> YkbDomainParam
     else -> YkbNeutral700
 }
 
@@ -614,14 +630,14 @@ private fun BenimDunyamMagazine(
     Column {
         androidx.compose.foundation.pager.HorizontalPager(
             state = pagerState,
-            contentPadding = PaddingValues(horizontal = 40.dp),
+            contentPadding = PaddingValues(horizontal = 32.dp),
             pageSpacing = Spacing.sm,
-            modifier = Modifier.height(340.dp)
+            modifier = Modifier.height(400.dp)
         ) { pageIndex ->
             val offset = (pagerState.currentPage - pageIndex + pagerState.currentPageOffsetFraction)
                 .let { if (it.isNaN()) 0f else it }
             val absOff = kotlin.math.abs(offset).coerceIn(0f, 1f)
-            val scale = androidx.compose.ui.util.lerp(0.86f, 1f, 1f - absOff)
+            val scale = androidx.compose.ui.util.lerp(0.90f, 1f, 1f - absOff)
             val alpha = androidx.compose.ui.util.lerp(0.55f, 1f, 1f - absOff)
 
             val world = worlds[pageIndex]
@@ -640,7 +656,6 @@ private fun BenimDunyamMagazine(
 
         Spacer(Modifier.height(Spacing.md))
 
-        // Page indicator
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
@@ -668,7 +683,6 @@ private fun MagazineCoverCard(
     onClick: () -> Unit
 ) {
     val shape = RoundedCornerShape(Radius.card)
-    val (teaserNum, teaserUnit) = extractTeaser(world.timeLabel)
 
     Box(
         modifier = modifier
@@ -677,14 +691,28 @@ private fun MagazineCoverCard(
             .background(domainBg(world.id))
             .clickable(role = Role.Button, onClick = onClick)
     ) {
-        // Decorative corner halo
+        // Subtle decorative pattern — büyük domain ikonu, low alpha, sağ üst rotated
+        Icon(
+            imageVector = world.icon,
+            contentDescription = null,
+            tint = Color.White.copy(alpha = 0.10f),
+            modifier = Modifier
+                .size(280.dp)
+                .align(Alignment.TopEnd)
+                .graphicsLayer {
+                    translationX = 80f
+                    translationY = -60f
+                    rotationZ = -18f
+                }
+        )
+        // Soft corner halo under pattern
         Box(
             modifier = Modifier
                 .size(200.dp)
                 .align(Alignment.TopEnd)
-                .graphicsLayer { translationX = 60f; translationY = -40f }
+                .graphicsLayer { translationX = 80f; translationY = -40f }
                 .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.06f))
+                .background(Color.White.copy(alpha = 0.04f))
         )
 
         // Top: domain name + alert chip
@@ -692,7 +720,7 @@ private fun MagazineCoverCard(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .fillMaxWidth()
-                .padding(Spacing.xl),
+                .padding(start = Spacing.xl, end = Spacing.xl, top = Spacing.xl),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Top
         ) {
@@ -715,44 +743,215 @@ private fun MagazineCoverCard(
             }
         }
 
-        // Big icon top-right (below header)
-        Icon(
-            imageVector = world.icon,
-            contentDescription = null,
-            tint = Color.White.copy(alpha = 0.9f),
+        // Per-domain rich content — lower half of card
+        Box(
             modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .size(48.dp)
-                .padding(end = Spacing.xl)
-        )
+                .align(Alignment.BottomStart)
+                .fillMaxWidth()
+                .padding(Spacing.xl)
+        ) {
+            when (world.id) {
+                "evim" -> EvimCoverContent()
+                "aracim" -> AracimCoverContent()
+                "seyahat" -> SeyahatCoverContent()
+                "saglik" -> SaglikCoverContent()
+                "ailem" -> AilemCoverContent()
+                "param" -> ParamCoverContent()
+                else -> {}
+            }
+        }
+    }
+}
 
-        // Center-left: big teaser number + unit
+// ═══ PER-DOMAIN CONTENT (hardcoded mock data for this iteration) ═══
+// TODO: wire to real data sources — each card is a snapshot of that domain's state.
+
+@Composable
+private fun StatRow(label: String, value: String, valueBold: Boolean = false) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = YkbType.BodySm.copy(color = Color.White.copy(alpha = 0.75f))
+        )
+        Text(
+            text = value,
+            style = YkbType.BodyMd.copy(
+                color = Color.White,
+                fontWeight = if (valueBold) FontWeight.Bold else FontWeight.SemiBold
+            )
+        )
+    }
+}
+
+@Composable
+private fun PrimaryBlock(
+    topLabel: String,
+    primary: String,
+    secondary: String,
+    trendDelta: String? = null
+) {
+    Column {
+        Text(
+            text = topLabel,
+            style = YkbType.BodySm.copy(color = Color.White.copy(alpha = 0.75f))
+        )
+        Spacer(Modifier.height(2.dp))
         Row(
-            modifier = Modifier
-                .align(Alignment.Center)
-                .padding(horizontal = Spacing.xl),
-            verticalAlignment = Alignment.Bottom,
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
         ) {
             Text(
-                text = teaserNum,
-                style = YkbType.NumericXl.copy(color = Color.White)
+                text = primary,
+                style = YkbType.NumericLg.copy(color = Color.White)
             )
-            Text(
-                text = teaserUnit,
-                style = YkbType.BodyMd.copy(color = Color.White.copy(alpha = 0.8f)),
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
+            if (trendDelta != null) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(Radius.pill))
+                        .background(Color.White.copy(alpha = 0.22f))
+                        .padding(horizontal = Spacing.sm, vertical = 3.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.TrendingUp,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Text(
+                        text = trendDelta,
+                        style = YkbType.BodySm.copy(
+                            color = Color.White,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    )
+                }
+            }
         }
-
-        // Bottom-left: moneyLabel
         Text(
-            text = world.moneyLabel,
-            style = YkbType.BodyMd.copy(color = Color.White),
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(Spacing.xl)
+            text = secondary,
+            style = YkbType.BodySm.copy(color = Color.White.copy(alpha = 0.85f))
         )
+    }
+}
+
+@Composable
+private fun InfoCard(content: @Composable ColumnScope.() -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(Radius.card))
+            .background(Color.White.copy(alpha = 0.14f))
+            .padding(Spacing.md),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) { content() }
+}
+
+@Composable
+private fun EvimCoverContent() {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
+        PrimaryBlock(
+            topLabel = "Konut kredisi kalan",
+            primary = "\u20BA842K",
+            secondary = "Sonraki taksit 12 Nis \u00B7 \u20BA4.850"
+        )
+        InfoCard {
+            StatRow("DASK bitiş", "15 Ara")
+            StatRow("Konut sigortası", "3 Tem")
+            StatRow("Faturalar", "3 bekliyor \u00B7 \u20BA2.140")
+            StatRow("Otomatik ödeme", "6 aktif")
+        }
+    }
+}
+
+@Composable
+private fun AracimCoverContent() {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
+        PrimaryBlock(
+            topLabel = "Kasko yenileme",
+            primary = "38 gün",
+            secondary = "Tahmini \u20BA4.870"
+        )
+        InfoCard {
+            StatRow("Trafik sigortası", "54 gün")
+            StatRow("HGS bakiye", "\u20BA42 \u2022 düşük", valueBold = true)
+            StatRow("MTV dönem", "1. taksit ödendi")
+            StatRow("Trafik cezası", "Yok")
+        }
+    }
+}
+
+@Composable
+private fun SeyahatCoverContent() {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
+        PrimaryBlock(
+            topLabel = "Döviz pozisyonu",
+            primary = "\$1.240",
+            secondary = "USD/TRY 34.82 \u00B7 alarm 35.50"
+        )
+        InfoCard {
+            StatRow("Seyahat sigortası", "Yok \u2022 eksik", valueBold = true)
+            StatRow("Yurt dışı limit", "\u20BA32K / \u20BA80K")
+            StatRow("Açık WU transferi", "Yok")
+            StatRow("Kur alarmı", "Aktif")
+        }
+    }
+}
+
+@Composable
+private fun SaglikCoverContent() {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
+        PrimaryBlock(
+            topLabel = "TSS yıllık limit",
+            primary = "%18 kullanıldı",
+            secondary = "\u20BA1.820 / \u20BA10.000"
+        )
+        InfoCard {
+            StatRow("Sigorta bitiş", "3 Ağu")
+            StatRow("Son 30 gün harcama", "\u20BA640")
+            StatRow("Hayat sig. prim", "22 May")
+            StatRow("Check-up randevusu", "34 gün")
+        }
+    }
+}
+
+@Composable
+private fun AilemCoverContent() {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
+        PrimaryBlock(
+            topLabel = "İlk Param hesabı",
+            primary = "\u20BA42.3K",
+            secondary = "Hedef \u20BA60K \u00B7 %71 tamamlandı"
+        )
+        InfoCard {
+            StatRow("Okul harcı", "18 gün \u00B7 \u20BA8.500")
+            StatRow("Düzenli transfer", "3 aktif")
+            StatRow("BES birikim", "\u20BA24.8K")
+            StatRow("Devlet katkısı", "+\u20BA6.200")
+        }
+    }
+}
+
+@Composable
+private fun ParamCoverContent() {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
+        PrimaryBlock(
+            topLabel = "Net varlık",
+            primary = "\u20BA624K",
+            secondary = "Vade 5 gün \u00B7 tahmini getiri \u20BA4.120",
+            trendDelta = "+%8"
+        )
+        InfoCard {
+            StatRow("Findeks notu", "1.842 \u2022 +12")
+            StatRow("Altın Birikim", "\u20BA68K \u00B7 %82 hedef")
+            StatRow("Kartopu", "\u20BA18K / \u20BA25K")
+            StatRow("Vade dönüşüm", "Fırsat var", valueBold = true)
+        }
     }
 }
 

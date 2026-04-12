@@ -51,6 +51,7 @@ val YkbDomainAracim = Color(0xFF1E7A33)
 val YkbDomainSaglik = Color(0xFF9B2C4F)
 val YkbDomainSeyahat = Color(0xFF5B2A9E)
 val YkbDomainAilem = Color(0xFFB54A2E)
+val YkbDomainParam = Color(0xFF7A5200)   // deep amber — altın/mevduat/yatırım; white AAA ~7.2:1
 
 // Kart brand gradient'leri (Adios / Bonus)
 val YkbCardPurple1 = Color(0xFF3A1A6B)

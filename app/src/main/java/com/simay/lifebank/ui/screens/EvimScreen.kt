@@ -12,6 +12,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -173,6 +177,14 @@ fun EvimScreen(onBack: () -> Unit) {
                 .padding(bottom = 90.dp)
         ) {
             DomainHeader(label = "Evim", subtitle = "İdealtepe, Maltepe", onBack = onBack)
+
+            // ── Güvence Durumun ──
+            GuvenceDurumu(
+                items = listOf(
+                    GuvenceItem("DASK'ın Var", "Güvendesin"),
+                    GuvenceItem("Konut Sigortan Var", "Güvendesin")
+                )
+            )
 
             // Tabs
             Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)) {
@@ -909,3 +921,119 @@ fun EvimScreen(onBack: () -> Unit) {
  */
 private fun Modifier.graphicsLayerAlpha(alpha: Float): Modifier =
     this.graphicsLayer { this.alpha = alpha }
+
+// ═══ Güvence Durumun ═══
+private data class GuvenceItem(val title: String, val status: String)
+
+@androidx.compose.runtime.Composable
+private fun GuvenceDurumu(items: List<GuvenceItem>) {
+    androidx.compose.foundation.layout.Column(
+        modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
+    ) {
+        androidx.compose.material3.Text(
+            text = "Güvence Durumun",
+            style = com.simay.lifebank.ui.theme.YkbType.Heading2.copy(
+                color = com.simay.lifebank.ui.theme.Bark
+            )
+        )
+        androidx.compose.foundation.layout.Spacer(
+            Modifier.height(com.simay.lifebank.ui.theme.Spacing.md)
+        )
+        androidx.compose.foundation.layout.Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(androidx.compose.foundation.shape.RoundedCornerShape(
+                    com.simay.lifebank.ui.theme.Radius.card
+                ))
+                .background(com.simay.lifebank.ui.theme.YkbSurfaceCard)
+                .border(
+                    com.simay.lifebank.ui.theme.Elevation.hairline,
+                    com.simay.lifebank.ui.theme.YkbBorderHairline,
+                    androidx.compose.foundation.shape.RoundedCornerShape(
+                        com.simay.lifebank.ui.theme.Radius.card
+                    )
+                )
+        ) {
+            items.forEachIndexed { idx, item ->
+                androidx.compose.foundation.layout.Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            horizontal = com.simay.lifebank.ui.theme.Spacing.lg,
+                            vertical = com.simay.lifebank.ui.theme.Spacing.md
+                        ),
+                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween,
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                ) {
+                    androidx.compose.foundation.layout.Row(
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(
+                            com.simay.lifebank.ui.theme.Spacing.md
+                        )
+                    ) {
+                        androidx.compose.foundation.layout.Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(androidx.compose.foundation.shape.CircleShape)
+                                .background(
+                                    com.simay.lifebank.ui.theme.YkbSuccess.copy(alpha = 0.12f)
+                                ),
+                            contentAlignment = androidx.compose.ui.Alignment.Center
+                        ) {
+                            androidx.compose.material3.Icon(
+                                imageVector = androidx.compose.material.icons.Icons.Rounded.Shield,
+                                contentDescription = null,
+                                tint = com.simay.lifebank.ui.theme.YkbSuccess,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                        androidx.compose.material3.Text(
+                            text = item.title,
+                            style = com.simay.lifebank.ui.theme.YkbType.Heading3.copy(
+                                color = com.simay.lifebank.ui.theme.Bark
+                            )
+                        )
+                    }
+                    // Güvendesin chip
+                    androidx.compose.foundation.layout.Row(
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(4.dp),
+                        modifier = Modifier
+                            .clip(androidx.compose.foundation.shape.RoundedCornerShape(
+                                com.simay.lifebank.ui.theme.Radius.pill
+                            ))
+                            .background(
+                                com.simay.lifebank.ui.theme.YkbSuccess.copy(alpha = 0.14f)
+                            )
+                            .padding(
+                                horizontal = com.simay.lifebank.ui.theme.Spacing.sm,
+                                vertical = 4.dp
+                            )
+                    ) {
+                        androidx.compose.material3.Icon(
+                            imageVector = androidx.compose.material.icons.Icons.Rounded.CheckCircle,
+                            contentDescription = null,
+                            tint = com.simay.lifebank.ui.theme.YkbSuccess,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        androidx.compose.material3.Text(
+                            text = item.status,
+                            style = com.simay.lifebank.ui.theme.YkbType.BodySm.copy(
+                                color = com.simay.lifebank.ui.theme.YkbSuccess,
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+                            )
+                        )
+                    }
+                }
+                if (idx < items.lastIndex) {
+                    androidx.compose.foundation.layout.Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(com.simay.lifebank.ui.theme.Elevation.hairline)
+                            .background(com.simay.lifebank.ui.theme.YkbBorderHairline)
+                    )
+                }
+            }
+        }
+    }
+}
