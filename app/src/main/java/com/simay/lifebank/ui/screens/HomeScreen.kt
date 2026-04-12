@@ -1,7 +1,15 @@
 package com.simay.lifebank.ui.screens
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,8 +19,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
@@ -24,11 +39,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.simay.lifebank.ui.components.GlassButton
@@ -46,6 +67,7 @@ import com.simay.lifebank.ui.theme.SerifFont
 import com.simay.lifebank.ui.theme.Sky
 import com.simay.lifebank.ui.theme.Stone
 import com.simay.lifebank.ui.theme.Terra
+import com.simay.lifebank.ui.theme.YkbAccentPurple
 import com.simay.lifebank.ui.util.formatTRY
 import java.util.Calendar
 
@@ -66,7 +88,7 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
     val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
     val greeting = when {
         hour < 12 -> "G\u00fcnayd\u0131n"
-        hour < 18 -> "Merhabalar"
+        hour < 18 -> "Merhaba"
         else -> "\u0130yi ak\u015famlar"
     }
     val timeContext = when {
@@ -109,231 +131,178 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
         SmartFeedItem("life", "\uD83C\uDFE5", "Check-up randevusu", "15 May\u0131s \u00B7 Ac\u0131badem \u00B7 34 g\u00fcn", null, Rose, "saglik"),
     )
 
+    val navyDeep = Color(0xFF0A1F4A)
+    val navyMid = Color(0xFF14306B)
+    val navySoft = Color(0xFF1E4590)
+
+    val totalBalance = balance + cardAvailable + 9830
+    val totalStr = formatTRY(totalBalance)
+    val (totalMain, totalDec) = remember(totalStr) {
+        val comma = totalStr.lastIndexOf(',')
+        if (comma >= 0) totalStr.substring(0, comma) to totalStr.substring(comma)
+        else totalStr to ""
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Fixed navy strip behind status bar — kayan içerik bu bandın arkasına girmez
+        Spacer(
+            modifier = Modifier
+                .fillMaxWidth()
+                .windowInsetsTopHeight(WindowInsets.statusBars)
+                .background(navyDeep)
+                .align(Alignment.TopCenter)
+        )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .statusBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(bottom = 90.dp)
     ) {
-        // ═══ HEADER ═══
-        Column(modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 12.dp)) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(greeting, fontSize = 12.sp, color = Stone, fontFamily = SansFont, letterSpacing = 0.3.sp)
-                    Text("Bedir", fontSize = 24.sp, fontWeight = FontWeight.Medium, color = Bark, fontFamily = SerifFont)
-                }
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .size(38.dp)
-                        .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.5f))
-                        .border(1.dp, Color.White.copy(alpha = 0.6f), CircleShape)
-                ) {
-                    Text("B", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Bark, fontFamily = SansFont)
-                }
-            }
+        // ═══ DARK NAVY HERO PANEL (greeting + total balance + cards) ═══
 
-            // ═══ HESAP KARTI ═══
-            GlassSurface(
-                animate = true,
-                intensity = GlassIntensity.Strong,
-                accent = Moss,
-                glow = true,
-                contentPadding = PaddingValues(horizontal = 18.dp, vertical = 16.dp),
-                modifier = Modifier.padding(bottom = 10.dp)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp))
+                .background(Brush.verticalGradient(listOf(navyDeep, navyMid, navySoft)))
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 20.dp)
             ) {
+                // greeting row (avatar kaldırıldı)
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 12.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        Text(
-                            "VADES\u0130Z TL HESABI", fontSize = 10.sp, color = Stone,
-                            fontFamily = SansFont, letterSpacing = 0.8.sp, fontWeight = FontWeight.SemiBold
-                        )
-                        Text(
-                            formatTRY(balance), fontSize = 28.sp, fontWeight = FontWeight.Medium,
-                            color = Bark, fontFamily = SerifFont, modifier = Modifier.padding(top = 2.dp)
-                        )
+                        Text(greeting, fontSize = 12.sp, color = Color.White.copy(alpha = 0.7f), fontFamily = SansFont, letterSpacing = 0.3.sp)
+                        Text("Simay", fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = Color.White, fontFamily = SansFont)
                     }
-                    Column(
+                    Box(
+                        contentAlignment = Alignment.Center,
                         modifier = Modifier
-                            .widthIn(max = 120.dp)
-                            .background(Color.White.copy(alpha = 0.45f), RoundedCornerShape(12.dp))
-                            .border(1.dp, Color.White.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
-                            .padding(horizontal = 12.dp, vertical = 8.dp)
+                            .size(38.dp)
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = 0.14f))
                     ) {
-                        Text(
-                            "\u2B50 MAA\u015e AYRICALI\u011eI", fontSize = 8.sp, color = Stone,
-                            fontFamily = SansFont, letterSpacing = 0.5.sp, fontWeight = FontWeight.SemiBold
-                        )
-                        Spacer(Modifier.height(3.dp))
-                        Text("EFT \u00fccretsiz", fontSize = 9.sp, color = Moss, fontWeight = FontWeight.Bold, fontFamily = SansFont)
-                        Text("Faiz +%2", fontSize = 9.sp, color = Moss, fontWeight = FontWeight.Bold, fontFamily = SansFont)
-                        Text("Kredi avantaj\u0131", fontSize = 9.sp, color = Moss, fontWeight = FontWeight.Bold, fontFamily = SansFont)
+                        Text("\uD83D\uDD14", fontSize = 16.sp)
                     }
                 }
 
-                Text(
-                    "HIZLI TRANSFER", fontSize = 10.sp, color = Stone,
-                    fontFamily = SansFont, fontWeight = FontWeight.SemiBold,
-                    letterSpacing = 0.5.sp, modifier = Modifier.padding(bottom = 8.dp)
+                Spacer(Modifier.height(16.dp))
+
+                val tightText = androidx.compose.ui.text.TextStyle(
+                    platformStyle = androidx.compose.ui.text.PlatformTextStyle(includeFontPadding = false),
+                    lineHeightStyle = androidx.compose.ui.text.style.LineHeightStyle(
+                        alignment = androidx.compose.ui.text.style.LineHeightStyle.Alignment.Center,
+                        trim = androidx.compose.ui.text.style.LineHeightStyle.Trim.Both
+                    )
                 )
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    contacts.forEach { c ->
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .clip(CircleShape)
-                                    .background(Brush.linearGradient(listOf(c.color, c.color.copy(alpha = 0.53f))))
-                            ) {
-                                Text(c.avatar, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White, fontFamily = SansFont)
-                            }
-                            Spacer(Modifier.height(3.dp))
-                            Text(c.name, fontSize = 9.sp, color = Stone, fontFamily = SansFont)
-                        }
-                    }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(Color.White.copy(alpha = 0.4f))
-                                .border(1.5.dp, Color.Black.copy(alpha = 0.15f), CircleShape)
-                        ) {
-                            Text("+", fontSize = 16.sp, color = Pebble)
-                        }
-                        Spacer(Modifier.height(3.dp))
-                        Text("Yeni", fontSize = 9.sp, color = Pebble, fontFamily = SansFont)
-                    }
-                }
-            }
-
-            // ═══ ADİOS KART ═══
-            val purpleDark = Color(0xFF1A0A3E)
-            val purpleMid = Color(0xFF2D1B69)
-            val purpleAccent = Color(0xFF8B5CF6)
-            val purpleLight = Color(0xFFC084FC)
-
-            GlassSurface(
-                animate = true,
-                intensity = GlassIntensity.Normal,
-                contentPadding = PaddingValues(0.dp),
-                onClick = { onNavigate("finans") },
-                modifier = Modifier.padding(bottom = 4.dp)
-            ) {
-                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Brush.linearGradient(listOf(purpleDark, purpleMid, purpleDark)))
-                        .padding(horizontal = 18.dp, vertical = 14.dp)
+                        .height(IntrinsicSize.Min),
+                    verticalAlignment = Alignment.Top,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            "Hesabınızdaki Bakiye",
+                            fontSize = 13.sp,
+                            color = Color.White.copy(alpha = 0.75f),
+                            fontFamily = SansFont, letterSpacing = 0.2.sp,
+                            lineHeight = 13.sp,
+                            style = tightText
+                        )
+                        Text(
+                            text = buildAnnotatedString {
+                                withStyle(SpanStyle(color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.Bold)) {
+                                    append(totalMain)
+                                }
+                                if (totalDec.isNotEmpty()) {
+                                    withStyle(SpanStyle(color = Color.White.copy(alpha = 0.45f), fontSize = 22.sp, fontWeight = FontWeight.Bold)) {
+                                        append(totalDec)
+                                    }
+                                }
+                            },
+                            fontFamily = SansFont,
+                            lineHeight = 34.sp,
+                            style = tightText
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            "Tüm Hesaplarım \u203A",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White.copy(alpha = 0.9f),
+                            fontFamily = SansFont,
+                            textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline,
+                            modifier = Modifier.clickable { onNavigate("finans") }
+                        )
+                    }
                     Box(
-                        modifier = Modifier
-                            .size(100.dp)
-                            .align(Alignment.TopEnd)
-                            .graphicsLayer { translationX = 20f; translationY = -30f }
-                            .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.04f))
-                    )
-                    Column {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("Adios \u2022\u2022\u2022\u2022 8742", fontSize = 11.sp, color = Color.White.copy(alpha = 0.7f), fontFamily = SansFont)
-                            Text("VISA", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.8f), fontFamily = SansFont)
-                        }
-                        Spacer(Modifier.height(8.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.Bottom
-                        ) {
-                            Column {
-                                Text("BU AY HARCAMA", fontSize = 9.sp, color = Color.White.copy(alpha = 0.6f), fontFamily = SansFont)
-                                Text(formatTRY(cardSpent), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White, fontFamily = SansFont)
-                            }
-                            Column(horizontalAlignment = Alignment.End) {
-                                Text("KULLANILAB\u0130L\u0130R L\u0130M\u0130T", fontSize = 9.sp, color = Color.White.copy(alpha = 0.6f), fontFamily = SansFont)
-                                Text(formatTRY(cardAvailable), fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White, fontFamily = SerifFont)
-                            }
-                        }
-                        Spacer(Modifier.height(8.dp))
-                        Box(
-                            modifier = Modifier.fillMaxWidth().height(3.dp)
-                                .clip(RoundedCornerShape(2.dp))
-                                .background(Color.White.copy(alpha = 0.15f))
-                        ) {
-                            Box(
-                                modifier = Modifier.fillMaxWidth(23456f / 75000f).height(3.dp)
-                                    .clip(RoundedCornerShape(2.dp))
-                                    .background(Brush.horizontalGradient(listOf(purpleAccent, purpleLight)))
-                            )
-                        }
+                        modifier = Modifier.fillMaxHeight(),
+                        contentAlignment = Alignment.BottomEnd
+                    ) {
+                        MaasShimmerCard(onParaEkle = { onNavigate("finans") })
                     }
                 }
+
+                Spacer(Modifier.height(16.dp))
+
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 10.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("\u2708\uFE0F", fontSize = 14.sp)
-                        Column {
-                            Text("${String.format("%,d", worldMiles).replace(',', '.')} mil", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Bark, fontFamily = SansFont)
-                            Text("Adios mil", fontSize = 9.sp, color = Pebble, fontFamily = SansFont)
-                        }
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("\uD83C\uDF0D", fontSize = 14.sp)
-                        Column {
-                            Text("3x mil", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Lav, fontFamily = SansFont)
-                            Text("yurt d\u0131\u015f\u0131", fontSize = 9.sp, color = Pebble, fontFamily = SansFont)
-                        }
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("\uD83D\uDCC5", fontSize = 14.sp)
-                        Column {
-                            Text("20 Nis", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Bark, fontFamily = SansFont)
-                            Text("ekstre kesim", fontSize = 9.sp, color = Pebble, fontFamily = SansFont)
-                        }
-                    }
+                    Text("Kartlar", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Color.White, fontFamily = SansFont)
+                    Text("Ekle +", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color.White.copy(alpha = 0.85f), fontFamily = SansFont)
                 }
-            }
 
-            // ═══ MİL TEKLİFİ ═══
-            GlassSurface(
-                animate = true,
-                intensity = GlassIntensity.Subtle,
-                borderLeftColor = purpleAccent,
-                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp),
-                onClick = { onNavigate("seyahat") }
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("\u2708\uFE0F", fontSize = 16.sp)
-                    Row(modifier = Modifier.weight(1f)) {
-                        Text("14.280 miliniz var", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Bark, fontFamily = SansFont)
-                        Text(" \u00B7 Tokyo u\u00e7u\u015funda kullan\u0131n, ", fontSize = 11.sp, color = Stone, fontFamily = SansFont)
-                        Text("\u20BA12.200 tasarruf", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = purpleAccent, fontFamily = SansFont)
-                    }
+                Spacer(Modifier.height(12.dp))
+
+                // Horizontal card scroll — Adios (YK mor) + Bonus (Garanti yeşil)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    AccountGlassCard(
+                        cardName = "Kullanılabilir Limit",
+                        topLabel = "Adios Kart",
+                        topEmoji = "\u2708\uFE0F",
+                        amount = formatTRY(cardAvailable),
+                        last4 = "8742",
+                        statementDate = "20 Nis",
+                        cardGradient = listOf(
+                            Color(0xFF3A1A6B),
+                            Color(0xFF5B2A9E),
+                            Color(0xFF7B3FC9)
+                        ),
+                        brandBadge = null,
+                        marqueeText = "15.000 TL puanınız var \u2708\uFE0F  Seyahatim+ ile puanlarınızı 2 kat değerinde kullanın",
+                        onClick = { onNavigate("finans") }
+                    )
+                    AccountGlassCard(
+                        cardName = "Kullanılabilir Limit",
+                        topLabel = "Bonus Kart",
+                        topEmoji = null,
+                        amount = formatTRY(38450),
+                        last4 = "4433",
+                        statementDate = "02 May",
+                        cardGradient = listOf(
+                            Color(0xFF0F4A1E),
+                            Color(0xFF1E7A33),
+                            Color(0xFF2DA04A)
+                        ),
+                        brandBadge = "\uD83C\uDF40",
+                        onClick = { onNavigate("finans") }
+                    )
                 }
             }
         }
@@ -424,4 +393,211 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
             }
         }
     }
+    }
 }
+
+@Composable
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+private fun AccountGlassCard(
+    cardName: String,
+    topLabel: String,
+    topEmoji: String?,
+    amount: String,
+    last4: String,
+    statementDate: String,
+    cardGradient: List<Color>,
+    brandBadge: String? = null,
+    marqueeText: String? = null,
+    onClick: () -> Unit = {}
+) {
+    val shape = RoundedCornerShape(18.dp)
+
+    Box(
+        modifier = Modifier
+            .width(168.dp)
+            .height(190.dp)
+            .clip(shape)
+            .background(Brush.linearGradient(cardGradient))
+            .border(1.dp, Color.White.copy(alpha = 0.18f), shape)
+    ) {
+        // Decorative sheen
+        Box(
+            modifier = Modifier
+                .size(130.dp)
+                .align(Alignment.TopEnd)
+                .graphicsLayer { translationX = 40f; translationY = -40f }
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 0.08f))
+        )
+        Box(
+            modifier = Modifier
+                .size(90.dp)
+                .align(Alignment.BottomStart)
+                .graphicsLayer { translationX = -30f; translationY = 30f }
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 0.05f))
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(14.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            // Top: label + optional emoji, with last4 directly beneath
+            Column {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        topLabel,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White.copy(alpha = 0.9f),
+                        fontFamily = SansFont,
+                        letterSpacing = 0.3.sp
+                    )
+                    if (topEmoji != null) {
+                        Text(topEmoji, fontSize = 13.sp)
+                    }
+                    if (brandBadge != null) {
+                        Text(brandBadge, fontSize = 18.sp)
+                    }
+                }
+                Text(
+                    "\u2022\u2022\u2022\u2022 $last4",
+                    fontSize = 10.sp,
+                    color = Color.White.copy(alpha = 0.75f),
+                    fontFamily = SansFont,
+                    letterSpacing = 1.sp
+                )
+            }
+
+            // Middle: card name + amount
+            Column {
+                Text(
+                    cardName,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    fontFamily = SansFont
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    amount,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    fontFamily = SansFont
+                )
+            }
+
+            // Bottom: statement date + optional marquee
+            Column {
+                Text(
+                    "Hesap kesim: $statementDate",
+                    fontSize = 9.sp,
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontFamily = SansFont
+                )
+                if (marqueeText != null) {
+                    Spacer(Modifier.height(3.dp))
+                    Text(
+                        marqueeText,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFFFFD166),
+                        fontFamily = SansFont,
+                        maxLines = 1,
+                        modifier = Modifier.basicMarquee()
+                    )
+                }
+            }
+        }
+    }
+    @Suppress("UNUSED_EXPRESSION") onClick
+}
+
+@Composable
+private fun MaasShimmerCard(onParaEkle: () -> Unit) {
+    val shape = RoundedCornerShape(14.dp)
+    val t = rememberInfiniteTransition(label = "maasShimmer")
+    val sweep by t.animateFloat(
+        initialValue = 0f, targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2400, easing = androidx.compose.animation.core.LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ), label = "sweep"
+    )
+    val hue by t.animateFloat(
+        initialValue = 0f, targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3600, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ), label = "hue"
+    )
+
+    val honey = Color(0xFFFFD166)
+    val rose = Color(0xFFFF7A8A)
+    val mint = Color(0xFF6DE5C9)
+    val lav = Color(0xFFB79BFF)
+    val hot1 = lerp(honey, mint, hue)
+    val hot2 = lerp(rose, lav, hue)
+    val hot3 = lerp(lav, honey, hue)
+
+    val base = Color.White.copy(alpha = 0.28f)
+    val palette = listOf(
+        base, base, base, base, base, base,
+        hot1, Color.White, hot2, hot3,
+        base, base, base, base, base, base
+    )
+    val shift = ((sweep * palette.size).toInt()).coerceIn(0, palette.size - 1)
+    val rotated = palette.drop(shift) + palette.take(shift)
+    val borderBrush = Brush.sweepGradient(rotated)
+
+    val fillBrush = Brush.linearGradient(
+        listOf(
+            hot1.copy(alpha = 0.14f),
+            hot2.copy(alpha = 0.18f),
+            hot3.copy(alpha = 0.14f)
+        )
+    )
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+        modifier = Modifier
+            .clip(shape)
+            .background(fillBrush)
+            .border(1.5.dp, borderBrush, shape)
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+    ) {
+        Text(
+            "Maa\u015f hesab\u0131na \u00f6zel",
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
+            fontFamily = SansFont,
+            letterSpacing = 0.3.sp
+        )
+        Text(
+            "%38 faiz",
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
+            fontFamily = SansFont
+        )
+        Spacer(Modifier.height(2.dp))
+        Text(
+            "Para Ekle +",
+            fontSize = 11.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color(0xFFFFD166),
+            fontFamily = SansFont,
+            textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline,
+            modifier = Modifier.clickable { onParaEkle() }
+        )
+    }
+}
+

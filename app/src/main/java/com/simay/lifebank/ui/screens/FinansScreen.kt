@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -50,6 +51,7 @@ import com.simay.lifebank.ui.components.TabItem
 import com.simay.lifebank.ui.components.animateCountUp
 import com.simay.lifebank.ui.theme.Bark
 import com.simay.lifebank.ui.theme.BarkMid
+import com.simay.lifebank.ui.theme.YkbAccentRed
 import com.simay.lifebank.ui.theme.Honey
 import com.simay.lifebank.ui.theme.Lav
 import com.simay.lifebank.ui.theme.Moss
@@ -184,6 +186,7 @@ fun FinansScreen(onBack: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .statusBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(bottom = 90.dp)
     ) {
@@ -577,7 +580,7 @@ fun FinansScreen(onBack: () -> Unit) {
                                         .height(4.dp)
                                         .clip(RoundedCornerShape(2.dp))
                                         .background(
-                                            if (pct > 80) Color(0xFFFF9B8A)
+                                            if (pct > 80) YkbAccentRed
                                             else Color.White.copy(alpha = 0.8f)
                                         )
                                 )

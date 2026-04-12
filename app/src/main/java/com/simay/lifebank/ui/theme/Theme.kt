@@ -3,19 +3,25 @@ package com.simay.lifebank.ui.theme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 
 private val LightColorScheme = lightColorScheme(
-    primary = Moss,
-    secondary = Sky,
-    tertiary = Honey,
-    background = BgBase,
-    surface = GlassWhite,
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onBackground = Bark,
-    onSurface = Bark,
-    error = Terra
+    primary = YkbPrimary,
+    onPrimary = YkbWhite,
+    primaryContainer = YkbPrimaryPale,
+    onPrimaryContainer = YkbNeutral900,
+    secondary = YkbAccentPurple,
+    onSecondary = YkbWhite,
+    tertiary = YkbAccentOrange,
+    onTertiary = YkbWhite,
+    background = YkbBgApp,
+    onBackground = YkbNeutral900,
+    surface = YkbBgCard,
+    onSurface = YkbNeutral900,
+    surfaceVariant = YkbNeutral100,
+    onSurfaceVariant = YkbNeutral700,
+    outline = YkbNeutral300,
+    error = YkbAccentRed,
+    onError = YkbWhite
 )
 
 @Composable

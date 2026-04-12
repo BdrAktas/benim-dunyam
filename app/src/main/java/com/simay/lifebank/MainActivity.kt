@@ -132,7 +132,8 @@ fun LifeBankApp() {
                 )
             }
     ) {
-        // Content
+        // Content — her ekran kendi statusBar inset'ini yönetir; bu sayede
+        // üstteki component status bar'a kadar uzanıp rengini eşleyebilir.
         NavHost(
             navController = navController,
             startDestination = Screen.Home.route,
@@ -165,12 +166,19 @@ fun LifeBankApp() {
             }
         }
 
-        // Floating glass bottom nav
-        GlassBottomBar(
-            currentRoute = currentRoute,
-            navController = navController,
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
+        // Fixed bottom nav — tam genişlikte opak backplate, içerik arkasından sızmaz
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .background(BgBase)
+        ) {
+            GlassBottomBar(
+                currentRoute = currentRoute,
+                navController = navController,
+                modifier = Modifier
+            )
+        }
     }
 }
 
@@ -188,21 +196,7 @@ private fun GlassBottomBar(
             .padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
             .navigationBarsPadding()
             .clip(RoundedCornerShape(22.dp))
-            .drawBehind {
-                drawRect(Color.White.copy(alpha = 0.42f))
-                drawRect(
-                    brush = Brush.linearGradient(
-                        colors = listOf(
-                            Color.White.copy(alpha = 0.35f),
-                            Color.Transparent
-                        ),
-                        start = Offset.Zero,
-                        end = Offset(size.width * 0.6f, size.height * 0.5f)
-                    ),
-                    size = androidx.compose.ui.geometry.Size(size.width, size.height * 0.5f)
-                )
-            }
-            .border(1.dp, Color.White.copy(alpha = 0.55f), RoundedCornerShape(22.dp))
+            .background(Color(0xFFF2F4F7))
     ) {
         Row(
             modifier = Modifier
