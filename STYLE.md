@@ -164,6 +164,39 @@ Her renk **5 ton**; `4Main` ana ton, diğerleri light→dark skala. Light & Dark
   - Link / CTA → `baseColorBlue4Main` veya `baseColorTextButtonSecondary`
 - **Gradient:** Blue gradient `primary3 → primary4` (`#22A9F1 → #0588DA`). Başka custom gradient tanımlama.
 - **Alpha overlay:** `Color.Black.copy(alpha = 0.XX)` yerine `baseColorBgOverlay` + alpha modifier.
+- **Kart başlıklarında emoji yasak.** Premium banking estetiğinde emoji, Android OEM render farklılıkları ve hierarchy zayıflığı nedeniyle kullanılmaz. Yerine `androidx.compose.material.icons.rounded.*` (Material Icons Extended) setinden 18–24dp line-icon'ları kullan; 32dp rounded-square (`Radius.iconBg`) içinde %10 alpha domain accent tint üstünde. Liste satırlarında ve smart feed'de emoji geçici olarak tolere edilir (veri şimdilik öyle), ama rebrand pass'ında hepsi Material icons'a taşınır.
+
+---
+
+### 2.5 Hero Pattern (tek koyu hacim)
+
+Banking glance'ının odak noktası. Ekranın en üstünde tek bir dikkati çeken koyu panel — para + primary CTA. Aşağı bölüm **bunu tekrar etmez**, aksine serin nötr kanvas üstünde disiplinli ışıklı kartlarla kontrast oluşturur (Revolut / Things 3 yaklaşımı). Tam-navy wall-of-dark hiyerarşiyi öldürür; kullanma.
+
+| Token | Hex | Kullanım |
+|---|---|---|
+| `YkbNavyDeep` | `#0A1F4A` | Gradient top + status bar bleed strip |
+| `YkbNavyMid` | `#14306B` | Gradient middle |
+| `YkbNavySoft` | `#1E4590` | Gradient bottom |
+| `YkbNavyCard` | `#0F1F3D` | Dark-matte card alternatifi (hero'dan 1 ton açık) |
+
+**Kurallar:**
+- Ekran başına **tek** hero vardır (genellikle Home). Diğer ekranlarda header solid accent veya neutral tutulur.
+- Gradient: dikey `Brush.verticalGradient(listOf(YkbNavyDeep, YkbNavyMid, YkbNavySoft))`.
+- Bottom corner radius: `Radius.hero = 28dp` (her iki alt köşe).
+- Status bar bleed: `WindowInsets.statusBars` yüksekliğinde sabit `YkbNavyDeep` şerit (kayan içerik arkasına girmez); scroll container `.statusBarsPadding()` alır.
+- Hero içinde metin: `YkbType.Display` (greeting 22sp SB, white), `YkbType.NumericXl` (ana tutar 32sp Bold, white), `YkbType.BodyMd` (label, white alpha 0.75). `includeFontPadding = false` + `LineHeightStyle(Trim.Both)` ile dikey kompakt.
+
+---
+
+### 2.6 Canvas ↔ Surface
+
+| Token | Hex | Kullanım |
+|---|---|---|
+| `YkbCanvas` | `#F7F9FC` | Sayfa arka planı (navy hero ile aynı sıcaklık). `BgBase` bu token'a bağlı. |
+| `YkbSurfaceCard` | `#FFFFFF` | Açık kanvas üstündeki kart yüzeyi |
+| `YkbBorderHairline` | `#EAEEF4` | 0.5–1dp kart borderları |
+
+Sıcak beige (eski `#F0F4F8` warm) kanvas **artık kullanılmıyor** — navy hero ile tonal çakışma yapıyordu.
 
 ---
 
@@ -309,6 +342,43 @@ Dark tema'da shadow yerine **border** (`baseColorComponentBorder`) tercih edilir
 - Default size: 24dp
 - Small: 16dp, Large: 32dp
 - Tint: `baseColorTextSecondary` (pasif) / `baseColorBlue4Main` (aktif) / `baseColorTextPrimary` (content)
+- Kaynak: **`androidx.compose.material.icons.rounded.*`** (Material Icons Extended). `material-icons-extended` bağımlılığı app/build.gradle.kts'te. Rounded variant banking konforu için default; Outlined / Filled özel gerekçede.
+- Domain → icon eşleşmesi (Benim Dünyam grid'inde):
+  - Evim → `Icons.Rounded.Home`
+  - Aracım → `Icons.Rounded.DirectionsCar`
+  - Sağlık → `Icons.Rounded.MonitorHeart`
+  - Seyahat → `Icons.Rounded.Flight`
+  - Ailem → `Icons.Rounded.Groups`
+  - Finans → `Icons.Rounded.AccountBalanceWallet` (Finans henüz grid'de değil, ileride)
+- Icon container: 32dp rounded-square (`Radius.iconBg = 12dp`), bg = domain accent %10 alpha.
+
+### 6.11 Smart Feed Tier Sistemi
+
+Home'daki "Bugünün Gündemi" gibi smart feed'ler **üç görsel tier**'e ayrılır. Aciliyet **sadece renk yoğunluğuyla değil**, şekil (filled/outlined/flat) + pozisyonla da sinyallendirilir — color-blind ve glancing kullanıcı için kritik.
+
+**Tier 1 — Urgent (acil, interrupt)**
+- Dolu `Terra` / `YkbAccentRed` kart, beyaz metin, `Radius.card`
+- Title → `YkbType.Heading3` white, Sub → `YkbType.BodySm` white alpha 0.9
+- Amount sağda → `YkbType.NumericMd` white
+- CTA: white dolu buton, 48dp min yükseklik, accent metin
+- Icon: 40dp rounded square, beyaz alpha 0.18 bg, emoji (geçici) veya beyaz icon
+- **Ekran başına max 1 tane**. Fazlası "X daha" link'ine düşer.
+- Pozisyon: her zaman feed'in en üstü.
+
+**Tier 2 — Billable (fatura / tutarı olan)**
+- `YkbSurfaceCard` + 1px `YkbBorderHairline` + `Radius.card`
+- **Sol kenarda 3dp dikey accent bar** (domain rengi)
+- Title solda → `Heading3` Bark, Sub → `BodySm` `YkbNeutral500`
+- Amount sağda → `NumericMd` domain accent rengi bold
+- Min height 56dp, full tappable + trailing chevron affordance
+
+**Tier 3 — Info (amount yok, nudge)**
+- **Kart yok.** Flat list satırı, `YkbSurfaceCard` kanvas üstünde
+- Min 56dp, 32dp accent-tint icon + title + sub + trailing `›`
+- Satırlar arasında 0.5–1dp `YkbBorderHairline` divider
+- Bu tier görsel olarak demote edilmeli; dikkat çekmesin.
+
+Tier'lar arası `Spacing.md` (12dp) gap.
 
 ---
 

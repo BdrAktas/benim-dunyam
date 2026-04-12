@@ -16,6 +16,7 @@ object Spacing {
     val pagePadding = 16.dp
     val cardPadding = 16.dp
     val iconGridGap = 16.dp
+    val sectionGap = 24.dp   // majör bölümler arası (Benim Dünyam ↔ Smart feed)
 }
 
 object Radius {
@@ -23,10 +24,13 @@ object Radius {
     val button = 24.dp
     val iconBg = 12.dp
     val badge = 6.dp
+    val pill = 8.dp          // alert chip / smart feed amount pill
     val input = 24.dp
+    val hero = 28.dp         // navy hero bottom-corner radius
 }
 
 object Elevation {
+    val hairline = 0.5.dp
     val card = 2.dp
     val floating = 4.dp
     val shadowColor = Color(0x14000000)        // 0.08 alpha

@@ -15,7 +15,7 @@ export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 ./gradlew installDebug         # install on connected device/emulator
 ./gradlew lint                 # Android lint
 ./gradlew test                 # unit tests (none exist yet)
-```
+```tasarımcı
 
 There is one module (`:app`). No test suites exist — no "run a single test" workflow to document.
 

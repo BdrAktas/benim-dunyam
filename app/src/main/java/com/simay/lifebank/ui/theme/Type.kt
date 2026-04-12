@@ -9,6 +9,10 @@ import androidx.compose.ui.unit.sp
 // YKB tokens use a geometric sans-serif (Inter / SF Pro). Until a custom
 // font is bundled, fall back to the platform sans-serif for both slots.
 val SansFont = FontFamily.SansSerif
+
+// NOT a real serif — alias for legacy call-sites. New code: use SansFont
+// directly and reach hierarchy via YkbType.* + weight extensions.
+@Deprecated("Use SansFont + YkbType.Heading*", ReplaceWith("SansFont"))
 val SerifFont = FontFamily.SansSerif
 val NumericFont = FontFamily.SansSerif
 
@@ -57,6 +61,12 @@ object YkbType {
         fontWeight = FontWeight.Normal,
         fontSize = 11.sp,
         lineHeight = 16.sp
+    )
+    val NumericXl = TextStyle(
+        fontFamily = NumericFont,
+        fontWeight = FontWeight.Bold,
+        fontSize = 32.sp,
+        lineHeight = 36.sp
     )
     val NumericLg = TextStyle(
         fontFamily = NumericFont,

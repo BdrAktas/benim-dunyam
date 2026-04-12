@@ -31,11 +31,31 @@ val YkbBgApp = Color(0xFFF0F4F8)
 val YkbBgCard = YkbWhite
 val YkbBgHeader = YkbPrimary
 
+// Canvas / Surface — banking-grade cool neutrals (Revolut / Things 3 pattern)
+val YkbCanvas = Color(0xFFF7F9FC)         // cool near-white page canvas (replaces warm YkbBgApp)
+val YkbSurfaceCard = YkbWhite             // card bg on light canvas
+val YkbBorderHairline = Color(0xFFEAEEF4) // 0.5–1dp card borders
+
+// Navy hero ramp (tepe paneli ve status bar bleed için)
+val YkbNavyDeep = Color(0xFF0A1F4A)
+val YkbNavyMid = Color(0xFF14306B)
+val YkbNavySoft = Color(0xFF1E4590)
+val YkbNavyCard = Color(0xFF0F1F3D)       // dark-matte card alternatifi (hero'dan bir ton açık)
+
+// Kart brand gradient'leri (Adios / Bonus)
+val YkbCardPurple1 = Color(0xFF3A1A6B)
+val YkbCardPurple2 = Color(0xFF5B2A9E)
+val YkbCardPurple3 = Color(0xFF7B3FC9)
+val YkbCardGreen1 = Color(0xFF0F4A1E)
+val YkbCardGreen2 = Color(0xFF1E7A33)
+val YkbCardGreen3 = Color(0xFF2DA04A)
+
 // Contextual
 val YkbStepPurple = Color(0xFF9B59B6)
 val YkbWorldpayPurple = Color(0xFF6B21A8)
 val YkbSuccess = Color(0xFF10B981)
 val YkbInfoIcon = YkbPrimary
+val YkbAccentHighlight = Color(0xFFFFD166) // marquee / tease highlight
 
 // ─────────────────────────────────────────────────────────────
 // Legacy aliases → remapped to YKB tokens so existing usages
@@ -71,5 +91,5 @@ val AccentAilem = Color(0xFFFDE3CC)
 val AccentFinans = Color(0xFFFEF3C7)
 val AccentDefault = YkbNeutral100
 
-// App background
-val BgBase = YkbBgApp
+// App background — serin nötr kanvas (navy hero ile aynı sıcaklıkta)
+val BgBase = YkbCanvas

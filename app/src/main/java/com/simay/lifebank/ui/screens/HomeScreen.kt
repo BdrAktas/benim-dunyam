@@ -14,7 +14,6 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,7 +21,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.statusBars
@@ -30,15 +29,22 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.DirectionsCar
+import androidx.compose.material.icons.rounded.Flight
+import androidx.compose.material.icons.rounded.Groups
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.MonitorHeart
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.draw.clip
@@ -52,30 +58,46 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.simay.lifebank.ui.components.GlassButton
-import com.simay.lifebank.ui.components.GlassIntensity
-import com.simay.lifebank.ui.components.GlassSurface
 import com.simay.lifebank.ui.components.animateCountUp
 import com.simay.lifebank.ui.theme.Bark
+import com.simay.lifebank.ui.theme.Elevation
 import com.simay.lifebank.ui.theme.Honey
 import com.simay.lifebank.ui.theme.Lav
 import com.simay.lifebank.ui.theme.Moss
-import com.simay.lifebank.ui.theme.Pebble
+import com.simay.lifebank.ui.theme.Radius
 import com.simay.lifebank.ui.theme.Rose
 import com.simay.lifebank.ui.theme.SansFont
-import com.simay.lifebank.ui.theme.SerifFont
 import com.simay.lifebank.ui.theme.Sky
-import com.simay.lifebank.ui.theme.Stone
+import com.simay.lifebank.ui.theme.Spacing
 import com.simay.lifebank.ui.theme.Terra
-import com.simay.lifebank.ui.theme.YkbAccentPurple
+import com.simay.lifebank.ui.theme.YkbAccentHighlight
+import com.simay.lifebank.ui.theme.YkbBorderHairline
+import com.simay.lifebank.ui.theme.YkbCardGreen1
+import com.simay.lifebank.ui.theme.YkbCardGreen2
+import com.simay.lifebank.ui.theme.YkbCardGreen3
+import com.simay.lifebank.ui.theme.YkbCardPurple1
+import com.simay.lifebank.ui.theme.YkbCardPurple2
+import com.simay.lifebank.ui.theme.YkbCardPurple3
+import com.simay.lifebank.ui.theme.YkbNavyDeep
+import com.simay.lifebank.ui.theme.YkbNavyMid
+import com.simay.lifebank.ui.theme.YkbNavySoft
+import com.simay.lifebank.ui.theme.YkbNeutral500
+import com.simay.lifebank.ui.theme.YkbSurfaceCard
+import com.simay.lifebank.ui.theme.YkbType
 import com.simay.lifebank.ui.util.formatTRY
 import java.util.Calendar
 
-private data class Contact(val name: String, val avatar: String, val color: Color)
+// Tek kontrat: (zaman vektörü + para vektörü) + sessiz alert badge.
+// "alert" tam metni artık kartta gösterilmiyor — detay Bugünün Gündemi feed'inde.
 private data class WorldCard(
-    val id: String, val emoji: String, val label: String,
-    val value: String, val sub: String,
-    val alert: String, val alertColor: Color, val color: Color
+    val id: String,
+    val icon: androidx.compose.ui.graphics.vector.ImageVector,
+    val label: String,
+    val timeLabel: String,   // Yakın olay + gün sayısı — primary scan
+    val moneyLabel: String,  // YK ürününe bağlı para göstergesi — secondary
+    val alertCount: Int,     // 0 ise badge gösterilmez
+    val alertColor: Color,   // badge tint (Terra = acil, Honey = hatırlatma, domain = info)
+    val color: Color         // domain accent (sol bar + icon tint)
 )
 private data class SmartFeedItem(
     val type: String, val emoji: String, val title: String,
@@ -98,28 +120,34 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
     }
 
     val balance = animateCountUp(47832)
-    val cardSpent = animateCountUp(23456)
     val cardAvailable = 75000 - 23456
-    val worldMiles = animateCountUp(14280)
-
-    val contacts = listOf(
-        Contact("Ahmet", "AY", Sky),
-        Contact("Zeynep", "ZK", Rose),
-        Contact("Mehmet", "MB", Moss),
-        Contact("Elif", "ES", Lav),
-    )
 
     val worlds = listOf(
-        WorldCard("evim", "\uD83C\uDFE0", "Evim", "\u20BA3.24M", "ev de\u011feri",
-            "Do\u011falgaz \u20BA847 \u00B7 son g\u00fcn!", Terra, Sky),
-        WorldCard("aracim", "\uD83D\uDE97", "Arac\u0131m", "\u20BA1.2M", "ara\u00e7 de\u011feri",
-            "Ya\u011f de\u011fi\u015fimi & fren balata kontrol\u00fc zaman\u0131", Honey, Moss),
-        WorldCard("saglik", "\uD83C\uDF3F", "Sa\u011fl\u0131k", "15 May", "check-up",
-            "Ac\u0131badem \u00B7 34 g\u00fcn kald\u0131", Rose, Rose),
-        WorldCard("seyahat", "\u2708\uFE0F", "Seyahat", "Tokyo", "70 g\u00fcn kald\u0131",
-            "JR Pass & sigorta al\u0131nmad\u0131", Honey, Lav),
-        WorldCard("ailem", "\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67", "Ailem", "\u20BA33.5K", "aile gideri",
-            "Har\u00e7l\u0131k \u20BA500 \u00B7 Tatil fonu %63", Moss, Terra),
+        // Evim — en yakın fatura + bu ay toplam. Feed'de 2 item (doğalgaz acil + elektrik).
+        WorldCard("evim", Icons.Rounded.Home, "Evim",
+            timeLabel = "3 fatura \u00B7 7 g\u00fcn",
+            moneyLabel = "Toplam \u20BA2.140",
+            alertCount = 2, alertColor = Terra, color = Sky),
+        // Aracım — kasko yenilemesi + tahmini prim. Feed'de 1 bakım hatırlatması.
+        WorldCard("aracim", Icons.Rounded.DirectionsCar, "Arac\u0131m",
+            timeLabel = "Kasko 38 g\u00fcn",
+            moneyLabel = "Tahmini \u20BA4.870",
+            alertCount = 1, alertColor = Honey, color = Moss),
+        // Sağlığım — check-up randevusu + TSS poliçe limit kullanımı.
+        WorldCard("saglik", Icons.Rounded.MonitorHeart, "Sa\u011fl\u0131\u011f\u0131m",
+            timeLabel = "Check-up \u00B7 34 g\u00fcn",
+            moneyLabel = "TSS limit %18",
+            alertCount = 0, alertColor = Rose, color = Rose),
+        // Seyahatim — aktif proje + fon ilerlemesi. 1 info (sigorta eksik).
+        WorldCard("seyahat", Icons.Rounded.Flight, "Seyahatim",
+            timeLabel = "Tokyo \u00B7 70 g\u00fcn",
+            moneyLabel = "Fon %63 \u00B7 \u20BA38K/\u20BA60K",
+            alertCount = 1, alertColor = Lav, color = Lav),
+        // Ailem — aktif düzenli talimat + İlk Param bakiye. Proaktif tetikleyici yok → badge yok.
+        WorldCard("ailem", Icons.Rounded.Groups, "Ailem",
+            timeLabel = "BES katk\u0131 \u00B7 bu ay",
+            moneyLabel = "\u0130lk Param \u20BA42.3K",
+            alertCount = 0, alertColor = Moss, color = Terra),
     )
 
     val smartFeed = listOf(
@@ -130,10 +158,6 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
         SmartFeedItem("life", "\uD83E\uDDF3", "Tokyo haz\u0131rl\u0131klar\u0131", "JR Pass & seyahat sigortas\u0131 eksik", null, Lav, "seyahat"),
         SmartFeedItem("life", "\uD83C\uDFE5", "Check-up randevusu", "15 May\u0131s \u00B7 Ac\u0131badem \u00B7 34 g\u00fcn", null, Rose, "saglik"),
     )
-
-    val navyDeep = Color(0xFF0A1F4A)
-    val navyMid = Color(0xFF14306B)
-    val navySoft = Color(0xFF1E4590)
 
     val totalBalance = balance + cardAvailable + 9830
     val totalStr = formatTRY(totalBalance)
@@ -149,7 +173,7 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .windowInsetsTopHeight(WindowInsets.statusBars)
-                .background(navyDeep)
+                .background(YkbNavyDeep)
                 .align(Alignment.TopCenter)
         )
 
@@ -165,12 +189,11 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp))
-                .background(Brush.verticalGradient(listOf(navyDeep, navyMid, navySoft)))
+                .clip(RoundedCornerShape(bottomStart = Radius.hero, bottomEnd = Radius.hero))
+                .background(Brush.verticalGradient(listOf(YkbNavyDeep, YkbNavyMid, YkbNavySoft)))
         ) {
             Column(
-                modifier = Modifier
-                    .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 20.dp)
+                modifier = Modifier.padding(Spacing.lg)
             ) {
                 // greeting row (avatar kaldırıldı)
                 Row(
@@ -178,14 +201,18 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
-                        Text(greeting, fontSize = 12.sp, color = Color.White.copy(alpha = 0.7f), fontFamily = SansFont, letterSpacing = 0.3.sp)
-                        Text("Simay", fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = Color.White, fontFamily = SansFont)
-                    }
+                    Text(
+                        text = "$greeting, Simay",
+                        style = YkbType.Display.copy(
+                            color = Color.White,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = 0.1.sp
+                        )
+                    )
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
-                            .size(38.dp)
+                            .size(40.dp)
                             .clip(CircleShape)
                             .background(Color.White.copy(alpha = 0.14f))
                     ) {
@@ -193,7 +220,7 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
                     }
                 }
 
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(Spacing.lg))
 
                 val tightText = androidx.compose.ui.text.TextStyle(
                     platformStyle = androidx.compose.ui.text.PlatformTextStyle(includeFontPadding = false),
@@ -211,36 +238,33 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            "Hesabınızdaki Bakiye",
-                            fontSize = 13.sp,
-                            color = Color.White.copy(alpha = 0.75f),
-                            fontFamily = SansFont, letterSpacing = 0.2.sp,
-                            lineHeight = 13.sp,
-                            style = tightText
+                            text = "Hesabınızdaki Bakiye",
+                            style = YkbType.BodyMd.copy(
+                                color = Color.White.copy(alpha = 0.75f),
+                                letterSpacing = 0.2.sp
+                            ).merge(tightText)
                         )
                         Text(
                             text = buildAnnotatedString {
-                                withStyle(SpanStyle(color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.Bold)) {
+                                withStyle(SpanStyle(color = Color.White, fontSize = YkbType.NumericXl.fontSize, fontWeight = FontWeight.Bold)) {
                                     append(totalMain)
                                 }
                                 if (totalDec.isNotEmpty()) {
-                                    withStyle(SpanStyle(color = Color.White.copy(alpha = 0.45f), fontSize = 22.sp, fontWeight = FontWeight.Bold)) {
+                                    withStyle(SpanStyle(color = Color.White.copy(alpha = 0.45f), fontSize = YkbType.Heading2.fontSize, fontWeight = FontWeight.Bold)) {
                                         append(totalDec)
                                     }
                                 }
                             },
-                            fontFamily = SansFont,
-                            lineHeight = 34.sp,
-                            style = tightText
+                            style = YkbType.NumericXl.copy(color = Color.White).merge(tightText)
                         )
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(Spacing.sm))
                         Text(
-                            "Tüm Hesaplarım \u203A",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White.copy(alpha = 0.9f),
-                            fontFamily = SansFont,
-                            textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline,
+                            text = "Tüm Hesaplarım \u203A",
+                            style = YkbType.BodySm.copy(
+                                color = Color.White.copy(alpha = 0.9f),
+                                fontWeight = FontWeight.SemiBold,
+                                textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline
+                            ),
                             modifier = Modifier.clickable { onNavigate("finans") }
                         )
                     }
@@ -252,25 +276,36 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
                     }
                 }
 
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(Spacing.lg))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Kartlar", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Color.White, fontFamily = SansFont)
-                    Text("Ekle +", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color.White.copy(alpha = 0.85f), fontFamily = SansFont)
+                    Text(
+                        text = "Kartlar",
+                        style = YkbType.Heading3.copy(color = Color.White)
+                    )
+                    Text(
+                        text = "Ekle +",
+                        style = YkbType.BodySm.copy(
+                            color = Color.White.copy(alpha = 0.9f),
+                            fontWeight = FontWeight.SemiBold,
+                            textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline
+                        ),
+                        modifier = Modifier.clickable { onNavigate("finans") }
+                    )
                 }
 
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(Spacing.md))
 
                 // Horizontal card scroll — Adios (YK mor) + Bonus (Garanti yeşil)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.md)
                 ) {
                     AccountGlassCard(
                         cardName = "Kullanılabilir Limit",
@@ -279,11 +314,7 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
                         amount = formatTRY(cardAvailable),
                         last4 = "8742",
                         statementDate = "20 Nis",
-                        cardGradient = listOf(
-                            Color(0xFF3A1A6B),
-                            Color(0xFF5B2A9E),
-                            Color(0xFF7B3FC9)
-                        ),
+                        cardGradient = listOf(YkbCardPurple1, YkbCardPurple2, YkbCardPurple3),
                         brandBadge = null,
                         marqueeText = "15.000 TL puanınız var \u2708\uFE0F  Seyahatim+ ile puanlarınızı 2 kat değerinde kullanın",
                         onClick = { onNavigate("finans") }
@@ -295,11 +326,7 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
                         amount = formatTRY(38450),
                         last4 = "4433",
                         statementDate = "02 May",
-                        cardGradient = listOf(
-                            Color(0xFF0F4A1E),
-                            Color(0xFF1E7A33),
-                            Color(0xFF2DA04A)
-                        ),
+                        cardGradient = listOf(YkbCardGreen1, YkbCardGreen2, YkbCardGreen3),
                         brandBadge = "\uD83C\uDF40",
                         onClick = { onNavigate("finans") }
                     )
@@ -307,92 +334,353 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
             }
         }
 
-        // ═══ BENİM DÜNYAM ═══
-        Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
-            Text("Benim D\u00fcnyam", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = Bark, fontFamily = SerifFont)
-            Spacer(Modifier.height(10.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                worlds.forEach { w ->
-                    GlassSurface(
-                        animate = true, intensity = GlassIntensity.Normal, accent = w.color,
-                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 14.dp),
-                        onClick = { onNavigate(w.id) },
-                        modifier = Modifier.width(160.dp).height(150.dp)
-                    ) {
-                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.SpaceBetween) {
-                            Column {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(bottom = 10.dp)) {
-                                    Text(w.emoji, fontSize = 22.sp)
-                                    Text(w.label, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Bark, fontFamily = SansFont)
-                                }
-                                Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(bottom = 8.dp)) {
-                                    Text(w.value, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Bark, fontFamily = SerifFont)
-                                    Text(w.sub, fontSize = 10.sp, color = Pebble, fontFamily = SansFont)
-                                }
-                            }
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(5.dp),
-                                modifier = Modifier
-                                    .background(w.alertColor.copy(alpha = 0.06f), RoundedCornerShape(8.dp))
-                                    .border(1.dp, w.alertColor.copy(alpha = 0.09f), RoundedCornerShape(8.dp))
-                                    .padding(horizontal = 8.dp, vertical = 6.dp)
-                            ) {
-                                Box(modifier = Modifier.size(5.dp).clip(CircleShape).background(w.alertColor))
-                                Text(w.alert, fontSize = 9.sp, color = w.alertColor, fontWeight = FontWeight.SemiBold, fontFamily = SansFont, lineHeight = 12.sp)
-                            }
-                        }
+        // ═══ BENİM DÜNYAM — 2-col grid, light cards, accent bar ═══
+        Column(modifier = Modifier.padding(horizontal = Spacing.lg, vertical = Spacing.md)) {
+            Text(
+                text = "Benim D\u00fcnyam",
+                style = YkbType.Heading2.copy(color = Bark)
+            )
+            Spacer(Modifier.height(Spacing.md))
+
+            // 2+2+1 grid: first 2 rows have two cards each, last row = single full-width card
+            worlds.chunked(2).forEachIndexed { rowIdx, rowItems ->
+                if (rowIdx > 0) Spacer(Modifier.height(Spacing.md))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.md)
+                ) {
+                    rowItems.forEach { w ->
+                        WorldGridCard(
+                            world = w,
+                            modifier = Modifier.weight(1f),
+                            onClick = { onNavigate(w.id) }
+                        )
+                    }
+                    // If this row has only 1 card (odd count), fill the gap with a spacer so card stays half-width
+                    if (rowItems.size == 1) {
+                        Spacer(modifier = Modifier.weight(1f))
                     }
                 }
             }
         }
 
-        // ═══ AKILLI AKIŞ ═══
-        Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
+        Spacer(Modifier.height(Spacing.sectionGap - Spacing.md))
+
+        // ═══ BUGÜNÜN GÜNDEMİ — 3-tier smart feed ═══
+        Column(modifier = Modifier.padding(horizontal = Spacing.lg)) {
             Text(
                 text = when (timeContext) {
                     "morning" -> "Bug\u00fcn seni neler bekliyor"
                     "evening" -> "Bug\u00fcn ilgilenmen gerekenler"
                     else -> "G\u00fcndemin"
                 },
-                fontSize = 15.sp, fontWeight = FontWeight.Medium, color = Bark, fontFamily = SerifFont
+                style = YkbType.Heading2.copy(color = Bark)
             )
-            Spacer(Modifier.height(10.dp))
-            smartFeed.forEach { item ->
-                val isUrgent = item.type == "urgent"
-                GlassSurface(
-                    animate = true,
-                    intensity = if (isUrgent) GlassIntensity.Normal else GlassIntensity.Subtle,
-                    accent = if (isUrgent) item.color else null,
-                    glow = isUrgent,
-                    borderLeftColor = item.color,
-                    contentPadding = PaddingValues(horizontal = if (isUrgent) 16.dp else 14.dp, vertical = if (isUrgent) 14.dp else 11.dp),
-                    onClick = { onNavigate(item.domain) },
-                    modifier = Modifier.padding(bottom = if (isUrgent) 10.dp else 6.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text(item.emoji, fontSize = if (isUrgent) 20.sp else 16.sp)
-                        Column(modifier = Modifier.weight(1f)) {
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Text(item.title, fontSize = if (isUrgent) 14.sp else 13.sp, fontWeight = if (isUrgent) FontWeight.Bold else FontWeight.SemiBold, color = Bark, fontFamily = SansFont)
-                                if (item.amount != null) {
-                                    Text(item.amount, fontSize = if (isUrgent) 16.sp else 13.sp, fontWeight = FontWeight.Bold, color = if (isUrgent) item.color else Bark, fontFamily = SerifFont)
-                                }
-                            }
-                            Text(item.sub, fontSize = 11.sp, color = Stone, fontFamily = SansFont, modifier = Modifier.padding(top = 1.dp))
-                        }
-                    }
-                    if (item.cta != null) {
-                        Spacer(Modifier.height(10.dp))
-                        GlassButton(text = item.cta, color = item.color, isFull = true, isSmall = true)
-                    }
-                }
+            Spacer(Modifier.height(Spacing.md))
+
+            // Tier-1 urgent (pinned to top, only first one rendered as filled card)
+            val urgent = smartFeed.firstOrNull { it.type == "urgent" }
+            val rest = smartFeed.filter { it !== urgent }
+            if (urgent != null) {
+                SmartFeedUrgent(item = urgent, onClick = { onNavigate(urgent.domain) })
+                Spacer(Modifier.height(Spacing.md))
+            }
+
+            // Tier-2 billable (has amount) — outlined card with accent bar
+            val billable = rest.filter { it.amount != null }
+            val info = rest.filter { it.amount == null }
+
+            billable.forEachIndexed { idx, item ->
+                if (idx > 0) Spacer(Modifier.height(Spacing.sm))
+                SmartFeedBillable(item = item, onClick = { onNavigate(item.domain) })
+            }
+
+            if (billable.isNotEmpty() && info.isNotEmpty()) {
+                Spacer(Modifier.height(Spacing.md))
+            }
+
+            // Tier-3 info — flat list rows with divider
+            info.forEachIndexed { idx, item ->
+                SmartFeedInfo(
+                    item = item,
+                    showDivider = idx < info.size - 1,
+                    onClick = { onNavigate(item.domain) }
+                )
             }
         }
     }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Smart feed — 3-tier components
+// ═══════════════════════════════════════════════════════════════
+
+@Composable
+private fun SmartFeedUrgent(item: SmartFeedItem, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(Radius.card)
+    val tint = item.color
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(tint)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(Spacing.lg)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.md)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.18f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(item.emoji, fontSize = 20.sp)
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = item.title,
+                    style = YkbType.Heading3.copy(color = Color.White)
+                )
+                Text(
+                    text = item.sub,
+                    style = YkbType.BodySm.copy(color = Color.White.copy(alpha = 0.9f))
+                )
+            }
+            if (item.amount != null) {
+                Text(
+                    text = item.amount,
+                    style = YkbType.NumericMd.copy(color = Color.White)
+                )
+            }
+        }
+        if (item.cta != null) {
+            Spacer(Modifier.height(Spacing.md))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp)
+                    .clip(RoundedCornerShape(Radius.button))
+                    .background(Color.White)
+                    .clickable(role = Role.Button, onClick = onClick)
+                    .padding(vertical = Spacing.md),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = item.cta,
+                    style = YkbType.Heading3.copy(color = tint, fontWeight = FontWeight.Bold)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SmartFeedBillable(item: SmartFeedItem, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(Radius.card)
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(YkbSurfaceCard)
+            .border(Elevation.hairline, YkbBorderHairline, shape)
+            .clickable(role = Role.Button, onClick = onClick)
+    ) {
+        // Left accent bar
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(3.dp)
+                .align(Alignment.CenterStart)
+                .background(item.color)
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 56.dp)
+                .padding(start = Spacing.lg, end = Spacing.lg, top = Spacing.md, bottom = Spacing.md),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.md)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(RoundedCornerShape(Radius.iconBg))
+                    .background(item.color.copy(alpha = 0.10f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(item.emoji, fontSize = 16.sp)
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = item.title,
+                    style = YkbType.Heading3.copy(color = Bark)
+                )
+                Text(
+                    text = item.sub,
+                    style = YkbType.BodySm.copy(color = YkbNeutral500)
+                )
+            }
+            if (item.amount != null) {
+                Text(
+                    text = item.amount,
+                    style = YkbType.NumericMd.copy(color = item.color)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SmartFeedInfo(item: SmartFeedItem, showDivider: Boolean, onClick: () -> Unit) {
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 56.dp)
+                .clickable(role = Role.Button, onClick = onClick)
+                .padding(vertical = Spacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.md)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .background(item.color.copy(alpha = 0.10f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(item.emoji, fontSize = 14.sp)
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = item.title,
+                    style = YkbType.Heading3.copy(color = Bark)
+                )
+                Text(
+                    text = item.sub,
+                    style = YkbType.BodySm.copy(color = YkbNeutral500)
+                )
+            }
+            Text(
+                text = "\u203A",
+                style = YkbType.Heading2.copy(color = YkbNeutral500)
+            )
+        }
+        if (showDivider) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(Elevation.hairline)
+                    .background(YkbBorderHairline)
+            )
+        }
+    }
+}
+
+@Composable
+private fun WorldGridCard(
+    world: WorldCard,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    val shape = RoundedCornerShape(Radius.card)
+    Box(
+        modifier = modifier
+            .height(140.dp)
+            .clip(shape)
+            .background(YkbSurfaceCard)
+            .border(Elevation.hairline, YkbBorderHairline, shape)
+            .clickable(role = Role.Button, onClick = onClick)
+    ) {
+        // 3dp left accent bar — domain kimliği
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(3.dp)
+                .align(Alignment.CenterStart)
+                .background(world.color)
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(start = Spacing.lg, end = Spacing.md, top = Spacing.md, bottom = Spacing.md),
+            verticalArrangement = Arrangement.spacedBy(Spacing.sm)
+        ) {
+            // Header: icon + label (sol), sessiz alert badge (sağ)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(RoundedCornerShape(Radius.iconBg))
+                            .background(world.color.copy(alpha = 0.10f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = world.icon,
+                            contentDescription = world.label,
+                            tint = world.color,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                    Text(
+                        text = world.label,
+                        style = YkbType.Heading3.copy(color = Bark)
+                    )
+                }
+                if (world.alertCount > 0) {
+                    AlertBadge(count = world.alertCount, tint = world.alertColor)
+                }
+            }
+
+            // Primary: zaman vektörü (ne zaman / ne yaklaşıyor)
+            Text(
+                text = world.timeLabel,
+                style = YkbType.Heading3.copy(color = Bark, fontWeight = FontWeight.Bold)
+            )
+
+            // Secondary: para vektörü (YK ürününe bağlı)
+            Text(
+                text = world.moneyLabel,
+                style = YkbType.BodySm.copy(color = YkbNeutral500)
+            )
+        }
+    }
+}
+
+@Composable
+private fun AlertBadge(count: Int, tint: Color) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier
+            .clip(RoundedCornerShape(Radius.pill))
+            .background(tint.copy(alpha = 0.12f))
+            .padding(horizontal = 8.dp, vertical = 2.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(6.dp)
+                .clip(CircleShape)
+                .background(tint)
+        )
+        Text(
+            text = count.toString(),
+            style = YkbType.Badge.copy(color = tint, fontWeight = FontWeight.Bold)
+        )
     }
 }
 
@@ -493,7 +781,7 @@ private fun AccountGlassCard(
                 )
             }
 
-            // Bottom: statement date + optional marquee
+            // Bottom: statement date + marquee slot (reserved on both cards)
             Column {
                 Text(
                     "Hesap kesim: $statementDate",
@@ -501,18 +789,16 @@ private fun AccountGlassCard(
                     color = Color.White.copy(alpha = 0.7f),
                     fontFamily = SansFont
                 )
-                if (marqueeText != null) {
-                    Spacer(Modifier.height(3.dp))
-                    Text(
-                        marqueeText,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFFFFD166),
-                        fontFamily = SansFont,
-                        maxLines = 1,
-                        modifier = Modifier.basicMarquee()
-                    )
-                }
+                Spacer(Modifier.height(3.dp))
+                Text(
+                    marqueeText ?: " ",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = YkbAccentHighlight,
+                    fontFamily = SansFont,
+                    maxLines = 1,
+                    modifier = if (marqueeText != null) Modifier.basicMarquee() else Modifier
+                )
             }
         }
     }
@@ -538,7 +824,7 @@ private fun MaasShimmerCard(onParaEkle: () -> Unit) {
         ), label = "hue"
     )
 
-    val honey = Color(0xFFFFD166)
+    val honey = YkbAccentHighlight
     val rose = Color(0xFFFF7A8A)
     val mint = Color(0xFF6DE5C9)
     val lav = Color(0xFFB79BFF)
@@ -593,7 +879,7 @@ private fun MaasShimmerCard(onParaEkle: () -> Unit) {
             "Para Ekle +",
             fontSize = 11.sp,
             fontWeight = FontWeight.SemiBold,
-            color = Color(0xFFFFD166),
+            color = YkbAccentHighlight,
             fontFamily = SansFont,
             textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline,
             modifier = Modifier.clickable { onParaEkle() }
