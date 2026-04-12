@@ -14,6 +14,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -78,10 +79,17 @@ import com.simay.lifebank.ui.theme.YkbCardGreen3
 import com.simay.lifebank.ui.theme.YkbCardPurple1
 import com.simay.lifebank.ui.theme.YkbCardPurple2
 import com.simay.lifebank.ui.theme.YkbCardPurple3
+import com.simay.lifebank.ui.theme.YkbDomainAilem
+import com.simay.lifebank.ui.theme.YkbDomainAracim
+import com.simay.lifebank.ui.theme.YkbDomainEvim
+import com.simay.lifebank.ui.theme.YkbDomainSaglik
+import com.simay.lifebank.ui.theme.YkbDomainSeyahat
 import com.simay.lifebank.ui.theme.YkbNavyDeep
 import com.simay.lifebank.ui.theme.YkbNavyMid
 import com.simay.lifebank.ui.theme.YkbNavySoft
 import com.simay.lifebank.ui.theme.YkbNeutral500
+import com.simay.lifebank.ui.theme.YkbNeutral700
+import com.simay.lifebank.ui.theme.YkbNeutral900
 import com.simay.lifebank.ui.theme.YkbSurfaceCard
 import com.simay.lifebank.ui.theme.YkbType
 import com.simay.lifebank.ui.util.formatTRY
@@ -334,34 +342,19 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
             }
         }
 
-        // ═══ BENİM DÜNYAM — 2-col grid, light cards, accent bar ═══
-        Column(modifier = Modifier.padding(horizontal = Spacing.lg, vertical = Spacing.md)) {
+        // ═══ BENİM DÜNYAM — magazine stack (editorial pager kapakları) ═══
+        Column(modifier = Modifier.padding(vertical = Spacing.md)) {
             Text(
                 text = "Benim D\u00fcnyam",
-                style = YkbType.Heading2.copy(color = Bark)
+                style = YkbType.Heading2.copy(color = Bark),
+                modifier = Modifier.padding(horizontal = Spacing.lg)
             )
             Spacer(Modifier.height(Spacing.md))
 
-            // 2+2+1 grid: first 2 rows have two cards each, last row = single full-width card
-            worlds.chunked(2).forEachIndexed { rowIdx, rowItems ->
-                if (rowIdx > 0) Spacer(Modifier.height(Spacing.md))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.md)
-                ) {
-                    rowItems.forEach { w ->
-                        WorldGridCard(
-                            world = w,
-                            modifier = Modifier.weight(1f),
-                            onClick = { onNavigate(w.id) }
-                        )
-                    }
-                    // If this row has only 1 card (odd count), fill the gap with a spacer so card stays half-width
-                    if (rowItems.size == 1) {
-                        Spacer(modifier = Modifier.weight(1f))
-                    }
-                }
-            }
+            BenimDunyamMagazine(
+                worlds = worlds,
+                onNavigate = onNavigate
+            )
         }
 
         Spacer(Modifier.height(Spacing.sectionGap - Spacing.md))
@@ -583,81 +576,183 @@ private fun SmartFeedInfo(item: SmartFeedItem, showDivider: Boolean, onClick: ()
     }
 }
 
+// ═══════════════════════════════════════════════════════════════
+// BENIM DUNYAM — magazine stack
+// HorizontalPager + scale/alpha transforms for peek depth + big
+// editorial cover typography per domain.
+// ═══════════════════════════════════════════════════════════════
+
+private fun domainBg(id: String): Color = when (id) {
+    "evim" -> YkbDomainEvim
+    "aracim" -> YkbDomainAracim
+    "saglik" -> YkbDomainSaglik
+    "seyahat" -> YkbDomainSeyahat
+    "ailem" -> YkbDomainAilem
+    else -> YkbNeutral700
+}
+
+// Extract teaser number + unit from timeLabel
+private fun extractTeaser(timeLabel: String): Pair<String, String> {
+    val numRegex = Regex("(\\d+)\\s*(\\w+)")
+    val match = numRegex.find(timeLabel)
+    return if (match != null) {
+        match.groupValues[1] to match.groupValues[2]
+    } else {
+        // fallback — no numeric (e.g. "BES katkı · bu ay")
+        "—" to "bu ay"
+    }
+}
+
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
-private fun WorldGridCard(
+private fun BenimDunyamMagazine(
+    worlds: List<WorldCard>,
+    onNavigate: (String) -> Unit
+) {
+    val pagerState = androidx.compose.foundation.pager.rememberPagerState(pageCount = { worlds.size })
+
+    Column {
+        androidx.compose.foundation.pager.HorizontalPager(
+            state = pagerState,
+            contentPadding = PaddingValues(horizontal = 40.dp),
+            pageSpacing = Spacing.sm,
+            modifier = Modifier.height(340.dp)
+        ) { pageIndex ->
+            val offset = (pagerState.currentPage - pageIndex + pagerState.currentPageOffsetFraction)
+                .let { if (it.isNaN()) 0f else it }
+            val absOff = kotlin.math.abs(offset).coerceIn(0f, 1f)
+            val scale = androidx.compose.ui.util.lerp(0.86f, 1f, 1f - absOff)
+            val alpha = androidx.compose.ui.util.lerp(0.55f, 1f, 1f - absOff)
+
+            val world = worlds[pageIndex]
+            MagazineCoverCard(
+                world = world,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                        this.alpha = alpha
+                    },
+                onClick = { onNavigate(world.id) }
+            )
+        }
+
+        Spacer(Modifier.height(Spacing.md))
+
+        // Page indicator
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            repeat(worlds.size) { i ->
+                val isActive = i == pagerState.currentPage
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 4.dp)
+                        .size(if (isActive) 8.dp else 6.dp)
+                        .clip(CircleShape)
+                        .background(
+                            if (isActive) YkbNeutral900 else YkbBorderHairline
+                        )
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MagazineCoverCard(
     world: WorldCard,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
     val shape = RoundedCornerShape(Radius.card)
+    val (teaserNum, teaserUnit) = extractTeaser(world.timeLabel)
+
     Box(
         modifier = modifier
-            .height(140.dp)
+            .fillMaxHeight()
             .clip(shape)
-            .background(YkbSurfaceCard)
-            .border(Elevation.hairline, YkbBorderHairline, shape)
+            .background(domainBg(world.id))
             .clickable(role = Role.Button, onClick = onClick)
     ) {
-        // 3dp left accent bar — domain kimliği
+        // Decorative corner halo
         Box(
             modifier = Modifier
-                .fillMaxHeight()
-                .width(3.dp)
-                .align(Alignment.CenterStart)
-                .background(world.color)
+                .size(200.dp)
+                .align(Alignment.TopEnd)
+                .graphicsLayer { translationX = 60f; translationY = -40f }
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 0.06f))
         )
-        Column(
+
+        // Top: domain name + alert chip
+        Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(start = Spacing.lg, end = Spacing.md, top = Spacing.md, bottom = Spacing.md),
-            verticalArrangement = Arrangement.spacedBy(Spacing.sm)
+                .align(Alignment.TopStart)
+                .fillMaxWidth()
+                .padding(Spacing.xl),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top
         ) {
-            // Header: icon + label (sol), sessiz alert badge (sağ)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+            Text(
+                text = world.label,
+                style = YkbType.Display.copy(color = Color.White)
+            )
+            if (world.alertCount > 0) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(Radius.pill))
+                        .background(Color.White.copy(alpha = 0.24f))
+                        .padding(horizontal = Spacing.sm, vertical = 4.dp)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(RoundedCornerShape(Radius.iconBg))
-                            .background(world.color.copy(alpha = 0.10f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = world.icon,
-                            contentDescription = world.label,
-                            tint = world.color,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
                     Text(
-                        text = world.label,
-                        style = YkbType.Heading3.copy(color = Bark)
+                        text = "${world.alertCount} acil",
+                        style = YkbType.Badge.copy(color = Color.White, fontWeight = FontWeight.Bold)
                     )
                 }
-                if (world.alertCount > 0) {
-                    AlertBadge(count = world.alertCount, tint = world.alertColor)
-                }
             }
+        }
 
-            // Primary: zaman vektörü (ne zaman / ne yaklaşıyor)
+        // Big icon top-right (below header)
+        Icon(
+            imageVector = world.icon,
+            contentDescription = null,
+            tint = Color.White.copy(alpha = 0.9f),
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .size(48.dp)
+                .padding(end = Spacing.xl)
+        )
+
+        // Center-left: big teaser number + unit
+        Row(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(horizontal = Spacing.xl),
+            verticalAlignment = Alignment.Bottom,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+        ) {
             Text(
-                text = world.timeLabel,
-                style = YkbType.Heading3.copy(color = Bark, fontWeight = FontWeight.Bold)
+                text = teaserNum,
+                style = YkbType.NumericXl.copy(color = Color.White)
             )
-
-            // Secondary: para vektörü (YK ürününe bağlı)
             Text(
-                text = world.moneyLabel,
-                style = YkbType.BodySm.copy(color = YkbNeutral500)
+                text = teaserUnit,
+                style = YkbType.BodyMd.copy(color = Color.White.copy(alpha = 0.8f)),
+                modifier = Modifier.padding(bottom = 8.dp)
             )
         }
+
+        // Bottom-left: moneyLabel
+        Text(
+            text = world.moneyLabel,
+            style = YkbType.BodyMd.copy(color = Color.White),
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(Spacing.xl)
+        )
     }
 }
 

@@ -42,6 +42,16 @@ val YkbNavyMid = Color(0xFF14306B)
 val YkbNavySoft = Color(0xFF1E4590)
 val YkbNavyCard = Color(0xFF0F1F3D)       // dark-matte card alternatifi (hero'dan bir ton açık)
 
+// Magazine-stack — full-saturation domain backgrounds
+// White text on each of these passes WCAG AA ≥ 4.5:1:
+//   Evim    4.92:1   Aracim  5.36:1   Saglik  7.27:1
+//   Seyahat 9.24:1   Ailem   5.27:1
+val YkbDomainEvim = Color(0xFF1578A8)
+val YkbDomainAracim = Color(0xFF1E7A33)
+val YkbDomainSaglik = Color(0xFF9B2C4F)
+val YkbDomainSeyahat = Color(0xFF5B2A9E)
+val YkbDomainAilem = Color(0xFFB54A2E)
+
 // Kart brand gradient'leri (Adios / Bonus)
 val YkbCardPurple1 = Color(0xFF3A1A6B)
 val YkbCardPurple2 = Color(0xFF5B2A9E)
