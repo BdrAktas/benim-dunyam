@@ -39,6 +39,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.material.icons.rounded.AccountBalance
 import androidx.compose.material.icons.rounded.AccountBalanceWallet
 import androidx.compose.material.icons.rounded.DirectionsCar
 import androidx.compose.material.icons.rounded.Flight
@@ -70,6 +71,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.simay.lifebank.ui.components.animateCountUp
+import com.simay.lifebank.ui.theme.Stone
 import com.simay.lifebank.ui.theme.Bark
 import com.simay.lifebank.ui.theme.Elevation
 import com.simay.lifebank.ui.theme.Honey
@@ -120,6 +122,34 @@ private data class WorldCard(
     val alertColor: Color,   // badge tint (Terra = acil, Honey = hatırlatma, domain = info)
     val color: Color         // domain accent (sol bar + icon tint)
 )
+private data class CreditOverview(
+    val totalLimit: Int,
+    val used: Int
+) {
+    val available: Int get() = totalLimit - used
+    val usageRatio: Float get() = if (totalLimit == 0) 0f else used.toFloat() / totalLimit
+}
+
+private data class CreditLimit(
+    val id: String,
+    val name: String,
+    val icon: androidx.compose.ui.graphics.vector.ImageVector,
+    val totalLimit: Int,
+    val used: Int,
+    val accent: Color
+) {
+    val available: Int get() = totalLimit - used
+}
+
+private data class PaymentSchedule(
+    val dayLabel: String,   // "Bugün" / "Yarın" / "15 Nis"
+    val amount: Int,        // TRY
+    val title: String,      // "Su", "Elektrik", "Adios"
+    val domain: String,
+    val accent: Color,
+    val urgent: Boolean = false  // highlight today / overdue
+)
+
 private data class SmartFeedItem(
     val type: String, val emoji: String, val title: String,
     val sub: String, val amount: String? = null,
@@ -177,6 +207,55 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
         SmartFeedItem("life", "\uD83D\uDD27", "Ara\u00e7 bak\u0131m\u0131 gerekiyor", "Ya\u011f & fren balata \u00B7 48.200 km", null, Moss, "aracim"),
         SmartFeedItem("life", "\uD83E\uDDF3", "Tokyo haz\u0131rl\u0131klar\u0131", "JR Pass al \u00B7 seyahat sigortas\u0131n\u0131 g\u00fcvenceye al", null, Lav, "seyahat"),
         SmartFeedItem("life", "\uD83C\uDFE5", "Check-up randevusu", "15 May\u0131s \u00B7 Ac\u0131badem \u00B7 34 g\u00fcn", null, Rose, "saglik"),
+    )
+
+    // 7 günlük ödeme takvimi — sadece parasal + tarihi olan olaylar
+    val weeklySchedule = listOf(
+        PaymentSchedule("Bug\u00fcn",  189,    "Su",       "evim",   Sky,   urgent = true),
+        PaymentSchedule("Yar\u0131n",  523,    "Elektrik", "evim",   Honey),
+        PaymentSchedule("15 Nis",      847,    "Do\u011falgaz", "evim", Terra),
+        PaymentSchedule("18 Nis",      8920,   "Bonus Kart", "finans", Lav),
+        PaymentSchedule("20 Nis",      23456,  "Adios Kart", "finans", Lav),
+    )
+
+    // Sana özel kredi limitleri — toplam + kırılım
+    val creditLimits = listOf(
+        CreditLimit(
+            id = "ihtiyac",
+            name = "\u0130htiya\u00e7 Kredisi",
+            icon = Icons.Rounded.AccountBalanceWallet,
+            totalLimit = 150000,
+            used = 35000,
+            accent = Moss
+        ),
+        CreditLimit(
+            id = "tasit",
+            name = "Ta\u015f\u0131t Kredisi \u00f6n onay",
+            icon = Icons.Rounded.DirectionsCar,
+            totalLimit = 120000,
+            used = 0,
+            accent = Sky
+        ),
+        CreditLimit(
+            id = "konut",
+            name = "Konut Kredisi \u00f6n onay",
+            icon = Icons.Rounded.Home,
+            totalLimit = 500000,
+            used = 0,
+            accent = Rose
+        ),
+        CreditLimit(
+            id = "kmh",
+            name = "KMH",
+            icon = Icons.Rounded.AccountBalance,
+            totalLimit = 25000,
+            used = 0,
+            accent = Honey
+        ),
+    )
+    val creditOverview = CreditOverview(
+        totalLimit = creditLimits.sumOf { it.totalLimit },
+        used = creditLimits.sumOf { it.used }
     )
 
     val totalBalance = balance + cardAvailable + 9830
@@ -349,54 +428,248 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
 
         Spacer(Modifier.height(Spacing.sectionGap - Spacing.md))
 
-        // ═══ BUGÜNÜN GÜNDEMİ — 3-tier smart feed ═══
+        // ═══ SANA ÖZEL KREDİ LİMİTLERİN ═══
         Column(modifier = Modifier.padding(horizontal = Spacing.lg)) {
             Text(
-                text = when (timeContext) {
-                    "morning" -> "Bug\u00fcn seni neler bekliyor"
-                    "evening" -> "Bug\u00fcn ilgilenmen gerekenler"
-                    else -> "G\u00fcndemin"
-                },
+                text = "Sana \u00f6zel kredi limitlerin",
                 style = YkbType.Heading2.copy(color = Bark)
             )
             Spacer(Modifier.height(Spacing.md))
-
-            // Tier-1 urgent (pinned to top, only first one rendered as filled card)
-            val urgent = smartFeed.firstOrNull { it.type == "urgent" }
-            val rest = smartFeed.filter { it !== urgent }
-            if (urgent != null) {
-                SmartFeedUrgent(item = urgent, onClick = { onNavigate(urgent.domain) })
-                Spacer(Modifier.height(Spacing.md))
-            }
-
-            // Tier-2 billable (has amount) — outlined card with accent bar
-            val billable = rest.filter { it.amount != null }
-            val info = rest.filter { it.amount == null }
-
-            billable.forEachIndexed { idx, item ->
-                if (idx > 0) Spacer(Modifier.height(Spacing.sm))
-                SmartFeedBillable(item = item, onClick = { onNavigate(item.domain) })
-            }
-
-            if (billable.isNotEmpty() && info.isNotEmpty()) {
-                Spacer(Modifier.height(Spacing.md))
-            }
-
-            // Tier-3 info — flat list rows with divider
-            info.forEachIndexed { idx, item ->
-                SmartFeedInfo(
-                    item = item,
-                    showDivider = idx < info.size - 1,
-                    onClick = { onNavigate(item.domain) }
-                )
-            }
+            CreditLimitsSection(
+                overview = creditOverview,
+                limits = creditLimits,
+                onLimitClick = { onNavigate("finans") },
+                onSeeAll = { onNavigate("finans") }
+            )
         }
     }
     }
 }
 
 // ═══════════════════════════════════════════════════════════════
-// Smart feed — 3-tier components
+// Sana özel kredi limitlerin — toplam + kırılım + detay satırı
+// ═══════════════════════════════════════════════════════════════
+
+@Composable
+private fun CreditLimitsSection(
+    overview: CreditOverview,
+    limits: List<CreditLimit>,
+    onLimitClick: (CreditLimit) -> Unit,
+    onSeeAll: () -> Unit
+) {
+    val shape = RoundedCornerShape(28.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(Color.White)
+            .border(1.dp, YkbBorderHairline, shape)
+            .padding(horizontal = Spacing.xl, vertical = Spacing.xl),
+        verticalArrangement = Arrangement.spacedBy(Spacing.md)
+    ) {
+        // Hero: kullanılabilir limit
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                text = "Kullan\u0131labilir limitin",
+                style = YkbType.BodySm.copy(color = Stone)
+            )
+            Row(
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text(
+                    text = formatTRY(overview.available),
+                    style = YkbType.NumericXl.copy(color = Moss, fontSize = 30.sp, lineHeight = 34.sp),
+                    maxLines = 1,
+                    softWrap = false
+                )
+                Text(
+                    text = "/ ${formatTRY(overview.totalLimit)}",
+                    style = YkbType.BodyMd.copy(color = Stone),
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+            }
+        }
+
+        // Progress bar — used vs available
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(8.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(YkbNeutral100)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(overview.usageRatio.coerceIn(0f, 1f))
+                    .background(Terra.copy(alpha = 0.7f))
+            )
+        }
+
+        Text(
+            text = "${formatTRY(overview.used)} kullan\u0131mda",
+            style = YkbType.BodySm.copy(color = Stone)
+        )
+
+        // Divider
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(YkbBorderHairline)
+        )
+
+        // Kredi listesi
+        limits.forEach { limit ->
+            CreditLimitRow(limit = limit, onClick = { onLimitClick(limit) })
+        }
+
+        // Divider + all
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(YkbBorderHairline)
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .clickable(role = Role.Button, onClick = onSeeAll)
+                .padding(vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "T\u00fcm\u00fcn\u00fc \u0130ncele",
+                style = YkbType.BodyMd.copy(color = Sky, fontWeight = FontWeight.SemiBold)
+            )
+            Text("  \u2197", color = Sky, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+private fun CreditLimitRow(limit: CreditLimit, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(limit.accent.copy(alpha = 0.12f))
+        ) {
+            Icon(
+                imageVector = limit.icon,
+                contentDescription = null,
+                tint = limit.accent,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = limit.name,
+                style = YkbType.BodyMd.copy(color = Bark, fontWeight = FontWeight.SemiBold),
+                maxLines = 1
+            )
+            Text(
+                text = if (limit.used > 0) "${formatTRY(limit.used)} kullan\u0131mda"
+                       else "Kullan\u0131labilir",
+                style = YkbType.BodySm.copy(color = Stone)
+            )
+        }
+        Column(horizontalAlignment = Alignment.End) {
+            Text(
+                text = formatTRY(limit.available),
+                style = YkbType.BodyMd.copy(color = Bark, fontWeight = FontWeight.Bold),
+                maxLines = 1
+            )
+            Text(
+                text = "haz\u0131r",
+                style = YkbType.BodySm.copy(color = Moss, fontWeight = FontWeight.SemiBold)
+            )
+        }
+        Text("\u203A", color = Stone, fontSize = 20.sp)
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Weekly payment strip — 7 günlük nakit akışı agregasyonu (legacy)
+// ═══════════════════════════════════════════════════════════════
+
+@Composable
+private fun WeeklyPaymentStrip(
+    schedules: List<PaymentSchedule>,
+    onClick: (PaymentSchedule) -> Unit
+) {
+    androidx.compose.foundation.lazy.LazyRow(
+        contentPadding = PaddingValues(horizontal = Spacing.lg),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+    ) {
+        items(schedules.size) { idx ->
+            val s = schedules[idx]
+            PaymentChip(s, onClick = { onClick(s) })
+        }
+    }
+}
+
+@Composable
+private fun PaymentChip(s: PaymentSchedule, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(18.dp)
+    Column(
+        modifier = Modifier
+            .clip(shape)
+            .background(Color.White)
+            .border(1.dp, YkbBorderHairline, shape)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 12.dp)
+            .width(118.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(6.dp)
+                    .clip(CircleShape)
+                    .background(s.accent)
+            )
+            Text(
+                text = s.dayLabel,
+                style = YkbType.BodySm.copy(
+                    color = if (s.urgent) Terra else Stone,
+                    fontWeight = if (s.urgent) FontWeight.Bold else FontWeight.SemiBold
+                )
+            )
+        }
+        Text(
+            text = formatTRY(s.amount),
+            style = YkbType.NumericMd.copy(color = Bark),
+            maxLines = 1,
+            softWrap = false
+        )
+        Text(
+            text = s.title,
+            style = YkbType.BodySm.copy(color = Stone),
+            maxLines = 1,
+            softWrap = false
+        )
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Smart feed — 3-tier components (legacy, feed kaldırıldı)
 // ═══════════════════════════════════════════════════════════════
 
 @Composable
