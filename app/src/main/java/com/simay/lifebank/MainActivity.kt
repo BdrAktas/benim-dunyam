@@ -1,3 +1,5 @@
+
+
 package com.simay.lifebank
 
 import android.os.Bundle
@@ -34,6 +36,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.foundation.Image
@@ -50,12 +53,24 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material3.Icon
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.simay.lifebank.ui.theme.Elevation
+import com.simay.lifebank.ui.theme.Radius
+import com.simay.lifebank.ui.theme.YkbCanvas
+import com.simay.lifebank.ui.theme.YkbPrimary
+import com.simay.lifebank.ui.theme.YkbSurfaceCard
+import com.simay.lifebank.ui.theme.YkbType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -319,7 +334,7 @@ private fun GlassBottomBar(
             .padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
             .navigationBarsPadding()
             .clip(RoundedCornerShape(22.dp))
-            .background(Color(0xFFF2F4F7))
+            .background(YkbCanvas)
     ) {
         Row(
             modifier = Modifier
@@ -328,13 +343,10 @@ private fun GlassBottomBar(
             horizontalArrangement = Arrangement.SpaceAround
         ) {
             bottomTabs.forEach { tab ->
+                val isPanelOpen = activePanel == "benimdunyam"
                 val isActive = when (tab.route) {
-                    "benimdunyam" -> activePanel == "benimdunyam" || currentRoute in domainSubRoutes
+                    "benimdunyam" -> isPanelOpen || currentRoute in domainSubRoutes
                     else          -> currentRoute == tab.route
-                }
-                val activeColor = when (tab.route) {
-                    "finans" -> Honey
-                    else     -> Bark
                 }
                 val isBouncing = bouncingTab == tab.route
                 val scale by animateFloatAsState(
@@ -347,32 +359,52 @@ private fun GlassBottomBar(
                     finishedListener = { bouncingTab = null }
                 )
 
+                // Toggle affordance: panel açıkken ikon + label değişir
+                val displayIcon = if (tab.route == "benimdunyam" && isPanelOpen)
+                    Icons.Rounded.KeyboardArrowDown
+                else
+                    tab.icon
+                val displayLabel = if (tab.route == "benimdunyam" && isPanelOpen)
+                    "Kapat"
+                else
+                    tab.label
+
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .graphicsLayer { scaleX = scale; scaleY = scale }
-                        .clip(RoundedCornerShape(14.dp))
                         .then(
-                            if (isActive) Modifier.background(Color.White.copy(alpha = 0.5f))
-                            else Modifier
+                            if (isActive) Modifier
+                                .shadow(
+                                    elevation = Elevation.card,
+                                    shape = RoundedCornerShape(Radius.iconBg),
+                                    ambientColor = Elevation.shadowColor,
+                                    spotColor = Elevation.shadowColor
+                                )
+                                .clip(RoundedCornerShape(Radius.iconBg))
+                                .background(YkbSurfaceCard)
+                            else
+                                Modifier.clip(RoundedCornerShape(Radius.iconBg))
                         )
                         .clickable {
                             bouncingTab = tab.route
                             onTabClick(tab.route)
                         }
-                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
-                    Text(
-                        text = tab.emoji,
-                        fontSize = 16.sp,
-                        modifier = if (!isActive) Modifier.graphicsLayer { alpha = 0.6f } else Modifier
+                    Icon(
+                        imageVector = displayIcon,
+                        contentDescription = displayLabel,
+                        tint = if (isActive) YkbPrimary else Stone,
+                        modifier = Modifier.size(22.dp)
                     )
+                    Spacer(Modifier.height(2.dp))
                     Text(
-                        text = tab.label,
-                        fontSize = 9.sp,
-                        fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium,
-                        color = if (isActive) activeColor else Pebble,
-                        fontFamily = SansFont
+                        text = displayLabel,
+                        style = YkbType.Badge.copy(
+                            fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium,
+                            color = if (isActive) YkbPrimary else Stone
+                        )
                     )
                 }
             }
@@ -391,11 +423,11 @@ private data class DomainShortcut(
 )
 
 private val domainShortcuts = listOf(
-    DomainShortcut("evim",    "Evim",       "Evinizle ilgili\nher şey",    Sky,  R.drawable.ic_stitch_evim),
-    DomainShortcut("aracim",  "Aracım",     "Aracınızın\ndeğerini izle",   Moss, R.drawable.ic_stitch_aracim),
-    DomainShortcut("seyahat", "Seyahatim",  "Seyahatini\nplanla",          Lav,  R.drawable.ic_stitch_seyahat),
-    DomainShortcut("saglik",  "Sağlığım",   "Sağlığına\nöncelik ver",      Rose, R.drawable.ic_stitch_saglik),
-    DomainShortcut("ailem",   "Ailem",      "Ailenle\nbağlantıda kal",     Terra, R.drawable.ic_stitch_ailem),
+    DomainShortcut("evim",    "Evim",       "Evinizle ilgili\nher şey",        Sky,  R.drawable.ic_stitch_evim),
+    DomainShortcut("aracim",  "Aracım",     "Aracınızın\nDeğerini İzleyin",    Moss, R.drawable.ic_stitch_aracim),
+    DomainShortcut("seyahat", "Seyahatim",  "Seyahatinizi\nPlanlayın",         Lav,  R.drawable.ic_stitch_seyahat),
+    DomainShortcut("saglik",  "Sağlığım",   "Sağlığınıza\nÖncelik Verin",      Rose, R.drawable.ic_stitch_saglik),
+    DomainShortcut("ailem",   "Ailem",      "Ailenizle\nBağlantıda Kalın",     Terra, R.drawable.ic_stitch_ailem),
 )
 
 @Composable
@@ -404,7 +436,7 @@ private fun QuickLaunchPanel(onNavigate: (String) -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-            .background(Color(0xFFF2F4F7))
+            .background(YkbCanvas)
             .padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 12.dp)
     ) {
         // Başlık
@@ -465,10 +497,27 @@ private fun DomainGrid(onNavigate: (String) -> Unit) {
                     painter = painterResource(domain.illustrationRes),
                     contentDescription = null,
                     contentScale = ContentScale.Fit,
+                    alignment = if (domain.route == "ailem") Alignment.BottomEnd else Alignment.Center,
+                    colorFilter = if (domain.route == "ailem") ColorFilter.colorMatrix(
+                        ColorMatrix(floatArrayOf(
+                            1f,    0f,    0f, 0f, 0f,
+                            0f, 1.07f,    0f, 0f, 0f,
+                            0f,    0f, 0.97f, 0f, 0f,
+                            0f,    0f,    0f, 1f, 0f
+                        ))
+                    ) else null,
                     modifier = Modifier
-                        .size(if (domain.route == "ailem") 120.dp else 96.dp)
+                        .then(
+                            if (domain.route == "ailem")
+                                Modifier.height(190.dp).width(240.dp)
+                            else
+                                Modifier.size(96.dp)
+                        )
                         .align(Alignment.BottomEnd)
-                        .offset(x = 8.dp, y = 8.dp)
+                        .offset(
+                            x = if (domain.route == "ailem") 16.dp else 8.dp,
+                            y = if (domain.route == "ailem") 16.dp else 8.dp
+                        )
                 )
             }
         }
