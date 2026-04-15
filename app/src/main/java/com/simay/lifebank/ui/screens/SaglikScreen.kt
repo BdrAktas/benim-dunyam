@@ -34,6 +34,10 @@ import androidx.compose.ui.unit.sp
 import com.simay.lifebank.ui.components.AnimatedProgress
 import com.simay.lifebank.ui.components.ChecklistRow
 import com.simay.lifebank.ui.components.DomainHeader
+import com.simay.lifebank.ui.components.ExpenseCategory
+import com.simay.lifebank.ui.components.ExpenseMerchant
+import com.simay.lifebank.ui.components.ExpenseSummary
+import com.simay.lifebank.ui.components.GiderlerTab
 import com.simay.lifebank.ui.components.GlassButton
 import com.simay.lifebank.ui.components.GlassIntensity
 import com.simay.lifebank.ui.components.GlassSurface
@@ -78,6 +82,26 @@ private data class CoverageCategory(
 @Composable
 fun SaglikScreen(onBack: () -> Unit) {
     var tab by remember { mutableStateOf("takvim") }
+    val saglikSummary = remember {
+        ExpenseSummary(
+            totalAmount = 2180,
+            changePercent = -5,
+            topCategory = "Eczane",
+            topAmount = 840,
+            categories = listOf(
+                ExpenseCategory("Eczane",     840, 6, 39, Rose),
+                ExpenseCategory("Doktor",     720, 3, 33, Rose.copy(alpha = 0.7f)),
+                ExpenseCategory("Diş Hekimi", 480, 2, 22, Rose.copy(alpha = 0.5f)),
+                ExpenseCategory("Spor",       140, 4,  6, Rose.copy(alpha = 0.35f))
+            ),
+            merchants = listOf(
+                ExpenseMerchant("Eczacıbaşı",    "Eczane",     840, 6),
+                ExpenseMerchant("Acıbadem Klnk.", "Doktor",     720, 2),
+                ExpenseMerchant("Diş Kliniği",   "Diş Hekimi", 480, 2),
+                ExpenseMerchant("Fit Life",      "Spor",       140, 4)
+            )
+        )
+    }
     val medChecked = remember { mutableStateMapOf<String, Boolean>() }
     val covered = animateCountUp(target = 9284, duration = 800)
 
@@ -122,7 +146,8 @@ fun SaglikScreen(onBack: () -> Unit) {
                 tabs = listOf(
                     TabItem(id = "takvim", label = "Takvim"),
                     TabItem(id = "ilac", label = "İlaçlar"),
-                    TabItem(id = "kapsam", label = "Kapsam")
+                    TabItem(id = "kapsam", label = "Kapsam"),
+                    TabItem(id = "giderler", label = "Giderlerim")
                 ),
                 activeId = tab,
                 onTabChange = { tab = it }
@@ -135,6 +160,11 @@ fun SaglikScreen(onBack: () -> Unit) {
                 "takvim" -> TakvimTab(appointments)
                 "ilac" -> IlacTab(meds, medChecked)
                 "kapsam" -> KapsamTab(coverage, covered)
+            }
+
+            // ---- TAB: Giderlerim ----
+            if (tab == "giderler") {
+                GiderlerTab(summary = saglikSummary, accent = Rose)
             }
         }
     }
