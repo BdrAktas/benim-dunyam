@@ -119,6 +119,7 @@ import com.simay.lifebank.ui.theme.YkbNavySoft
 import com.simay.lifebank.ui.theme.YkbNeutral700
 import com.simay.lifebank.ui.theme.YkbCanvas
 import com.simay.lifebank.ui.theme.YkbPrimary
+import com.simay.lifebank.ui.theme.YkbSuccess
 import com.simay.lifebank.ui.theme.YkbSurfaceCard
 import com.simay.lifebank.ui.theme.YkbType
 import com.simay.lifebank.ui.util.formatTRY
@@ -610,16 +611,17 @@ private fun CreditLimitRow(limit: CreditLimit, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .heightIn(min = 44.dp)
+            .clip(RoundedCornerShape(Radius.pill))
             .clickable(role = Role.Button, onClick = onClick)
-            .padding(vertical = 8.dp),
+            .padding(vertical = Spacing.sm),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(Spacing.md)
     ) {
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
-                .size(36.dp)
+                .size(40.dp)
                 .clip(CircleShape)
                 .background(limit.accent.copy(alpha = 0.12f))
         ) {
@@ -637,8 +639,8 @@ private fun CreditLimitRow(limit: CreditLimit, onClick: () -> Unit) {
                 maxLines = 1
             )
             Text(
-                text = if (limit.used > 0) "${formatTRY(limit.used)} kullan\u0131mda"
-                       else "Kullan\u0131labilir",
+                text = if (limit.used > 0) "${formatTRY(limit.used)} kullanımda"
+                       else "Kullanılabilir",
                 style = YkbType.BodySm.copy(color = Stone)
             )
         }
@@ -648,12 +650,28 @@ private fun CreditLimitRow(limit: CreditLimit, onClick: () -> Unit) {
                 style = YkbType.BodyMd.copy(color = Bark, fontWeight = FontWeight.Bold),
                 maxLines = 1
             )
-            Text(
-                text = "haz\u0131r",
-                style = YkbType.BodySm.copy(color = Moss, fontWeight = FontWeight.SemiBold)
-            )
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(Radius.badge))
+                    .background(YkbSuccess.copy(alpha = 0.15f))
+                    .padding(horizontal = Spacing.sm, vertical = 2.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "hazır",
+                    style = YkbType.BodySm.copy(
+                        color = YkbSuccess,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                )
+            }
         }
-        Text("\u203A", color = Stone, fontSize = 20.sp)
+        Icon(
+            imageVector = Icons.Rounded.ChevronRight,
+            contentDescription = null,
+            tint = Stone,
+            modifier = Modifier.size(20.dp)
+        )
     }
 }
 
