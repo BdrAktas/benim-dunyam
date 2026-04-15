@@ -47,6 +47,10 @@ import androidx.compose.ui.unit.sp
 import com.simay.lifebank.ui.components.AnimatedProgress
 import com.simay.lifebank.ui.components.ConfettiEffect
 import com.simay.lifebank.ui.components.DomainHeader
+import com.simay.lifebank.ui.components.ExpenseCategory
+import com.simay.lifebank.ui.components.ExpenseMerchant
+import com.simay.lifebank.ui.components.ExpenseSummary
+import com.simay.lifebank.ui.components.GiderlerTab
 import com.simay.lifebank.ui.components.GlassButton
 import com.simay.lifebank.ui.components.GlassIntensity
 import com.simay.lifebank.ui.components.GlassPill
@@ -113,6 +117,27 @@ private data class InsurancePolicy(
 @Composable
 fun EvimScreen(onBack: () -> Unit, intent: String? = null) {
     var tab by remember { mutableStateOf("fatura") }
+    val evimSummary = remember {
+        ExpenseSummary(
+            totalAmount = 4280,
+            changePercent = 8,
+            topCategory = "Fatura",
+            topAmount = 2840,
+            categories = listOf(
+                ExpenseCategory("Fatura",        2840, 12, 66, Sky),
+                ExpenseCategory("Aidat",          850,  1, 20, Sky.copy(alpha = 0.7f)),
+                ExpenseCategory("İnternet",        350,  1,  8, Sky.copy(alpha = 0.5f)),
+                ExpenseCategory("Tadilat/Bakım",   240,  2,  6, Sky.copy(alpha = 0.35f))
+            ),
+            merchants = listOf(
+                ExpenseMerchant("İGDAŞ",        "Fatura",   980, 2),
+                ExpenseMerchant("ENERJİSA",     "Fatura",   720, 1),
+                ExpenseMerchant("İSKİ",         "Fatura",   340, 2),
+                ExpenseMerchant("Yönetim Ofisi","Aidat",    850, 1),
+                ExpenseMerchant("Turkcell",     "İnternet", 350, 1)
+            )
+        )
+    }
     LaunchedEffect(intent) {
         when (intent) {
             "pay_bill" -> tab = "fatura"
@@ -200,7 +225,8 @@ fun EvimScreen(onBack: () -> Unit, intent: String? = null) {
                         TabItem("fatura", "Faturalar"),
                         TabItem("deger", "Ev Değeri"),
                         TabItem("enerji", "Enerji"),
-                        TabItem("sigorta", "Sigortalar")
+                        TabItem("sigorta", "Sigortalar"),
+                        TabItem("giderler", "Giderlerim")
                     ),
                     activeId = tab,
                     onTabChange = { tab = it }
@@ -914,6 +940,11 @@ fun EvimScreen(onBack: () -> Unit, intent: String? = null) {
                         cta = "Teklif Al",
                         color = Sky
                     )
+                }
+
+                // ---- TAB: Giderlerim ----
+                if (tab == "giderler") {
+                    GiderlerTab(summary = evimSummary, accent = Sky)
                 }
             }
         }
