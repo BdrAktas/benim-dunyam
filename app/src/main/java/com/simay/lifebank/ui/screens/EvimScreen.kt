@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -110,8 +111,14 @@ private data class InsurancePolicy(
 )
 
 @Composable
-fun EvimScreen(onBack: () -> Unit) {
+fun EvimScreen(onBack: () -> Unit, intent: String? = null) {
     var tab by remember { mutableStateOf("fatura") }
+    LaunchedEffect(intent) {
+        when (intent) {
+            "pay_bill" -> tab = "fatura"
+            "renew_dask" -> tab = "sigorta"
+        }
+    }
     var paidBills by remember { mutableStateOf(mapOf<Int, Boolean>()) }
     var showConfetti by remember { mutableStateOf(false) }
     var dismissing by remember { mutableStateOf<Int?>(null) }
@@ -176,7 +183,7 @@ fun EvimScreen(onBack: () -> Unit) {
                 .verticalScroll(rememberScrollState())
                 .padding(bottom = 90.dp)
         ) {
-            DomainHeader(label = "Evim", subtitle = "İdealtepe, Maltepe", onBack = onBack)
+            DomainHeader(label = "Evim", subtitle = "İdealtepe, Maltepe", accent = Sky, onBack = onBack)
 
             // ── Güvence Durumun ──
             GuvenceDurumu(
@@ -365,7 +372,7 @@ fun EvimScreen(onBack: () -> Unit) {
                         rate = "%3.19",
                         term = "Süresiz",
                         desc = "Fatura ödeme sıkışıklığı yaşamayın. Hazır limitinizi kullanın.",
-                        cta = "Hemen Kullan",
+                        cta = "Başvur",
                         color = Moss,
                         highlight = true,
                         socialProof = "Bu ay 12.400 müşteri fatura ödemesinde kullandı",

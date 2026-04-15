@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,10 +36,13 @@ import com.simay.lifebank.ui.theme.Sky
 import com.simay.lifebank.ui.theme.Stone
 import com.simay.lifebank.ui.util.formatTRY
 
+// S1.2 — home DNA ile uyumlu: koyu başlık, YkbNeutral100 doldurulmuş çember back button,
+// opsiyonel domain accent chip (hangi domain'deyim hissini kaybetmemek için).
 @Composable
 fun DomainHeader(
     label: String,
     subtitle: String? = null,
+    accent: Color? = null,
     onBack: () -> Unit
 ) {
     Row(
@@ -49,21 +53,35 @@ fun DomainHeader(
             contentAlignment = Alignment.Center,
             modifier = Modifier
                 .size(36.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color.White.copy(alpha = 0.4f))
-                .border(1.dp, Color.White.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                .clip(CircleShape)
+                .background(com.simay.lifebank.ui.theme.YkbNeutral100)
                 .clickable(onClick = onBack)
         ) {
-            Text("\u2039", fontSize = 24.sp, color = Bark, fontWeight = FontWeight.Light)
+            Text(
+                text = "\u2039",
+                fontSize = 22.sp,
+                color = com.simay.lifebank.ui.theme.YkbNeutral900,
+                fontWeight = FontWeight.SemiBold
+            )
         }
-        Spacer(Modifier.width(10.dp))
+        Spacer(Modifier.width(12.dp))
+        // Optional accent dot — hangi domain'de olduğunu hızlı işaretler
+        if (accent != null) {
+            Box(
+                modifier = Modifier
+                    .size(28.dp)
+                    .clip(CircleShape)
+                    .background(accent.copy(alpha = 0.12f))
+            )
+            Spacer(Modifier.width(10.dp))
+        }
         Column {
             Text(
                 text = label,
                 fontSize = 22.sp,
-                fontWeight = FontWeight.Medium,
-                color = Bark,
-                fontFamily = SerifFont
+                fontWeight = FontWeight.SemiBold,
+                color = com.simay.lifebank.ui.theme.YkbNeutral900,
+                fontFamily = SansFont
             )
             if (subtitle != null) {
                 Text(

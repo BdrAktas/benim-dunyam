@@ -58,6 +58,7 @@ import com.simay.lifebank.ui.theme.SansFont
 import com.simay.lifebank.ui.theme.SerifFont
 import com.simay.lifebank.ui.theme.Sky
 import com.simay.lifebank.ui.theme.Stone
+import com.simay.lifebank.ui.theme.Terra
 import com.simay.lifebank.ui.util.formatTRY
 
 private data class FamilyMember(
@@ -136,7 +137,7 @@ fun AilemScreen(onBack: () -> Unit) {
             .verticalScroll(rememberScrollState())
             .padding(bottom = 90.dp)
     ) {
-        DomainHeader(label = "Ailem", subtitle = "Aile Finansları", onBack = onBack)
+        DomainHeader(label = "Ailem", subtitle = "Aile Finansları", accent = Terra, onBack = onBack)
 
         // Tabs
         Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)) {
@@ -431,12 +432,7 @@ private fun CocukTab(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(
-                        brush = Brush.linearGradient(
-                            colors = listOf(Moss, Sky)
-                        ),
-                        shape = CircleShape
-                    )
+                    .background(color = Terra, shape = CircleShape)
             ) {
                 Text(
                     text = "Ç",

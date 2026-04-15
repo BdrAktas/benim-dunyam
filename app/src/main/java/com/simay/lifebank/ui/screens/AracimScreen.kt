@@ -22,6 +22,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -76,8 +77,14 @@ private fun formatKm(value: Int): String {
 }
 
 @Composable
-fun AracimScreen(onBack: () -> Unit) {
+fun AracimScreen(onBack: () -> Unit, intent: String? = null) {
     var tab by remember { mutableStateOf("genel") }
+    LaunchedEffect(intent) {
+        when (intent) {
+            "kasko_quote" -> tab = "genel"
+            "muayene_book" -> tab = "bakim"
+        }
+    }
     var expandedM by remember { mutableStateOf<Int?>(null) }
     val km = animateCountUp(target = 48250, duration = 1000)
 
@@ -108,6 +115,7 @@ fun AracimScreen(onBack: () -> Unit) {
         DomainHeader(
             label = "Aracım",
             subtitle = "BMW 320i \u00B7 34 ABC 742",
+            accent = Moss,
             onBack = onBack
         )
 

@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.simay.lifebank.ui.theme.Bark
+import com.simay.lifebank.ui.theme.YkbBorderHairline
 import com.simay.lifebank.ui.theme.Moss
 import com.simay.lifebank.ui.theme.Pebble
 import com.simay.lifebank.ui.theme.SansFont
@@ -120,14 +121,13 @@ fun GlassSurface(
         label = "entrance_offset"
     )
 
-    val shape = RoundedCornerShape(24.dp)
+    // S1.1 — home DNA ile hizalı: 28dp radius + daha opak surface'ler.
+    val shape = RoundedCornerShape(28.dp)
 
-    // Glass card color: opaque base tinted very slightly warm to match design
-    val glassBase = Color(0xFFF9F7F4)
     val cardBg = when (intensity) {
         GlassIntensity.Strong -> Color.White
-        GlassIntensity.Subtle -> glassBase
-        GlassIntensity.Normal -> Color(0xFFFCFBF9)
+        GlassIntensity.Normal -> Color.White
+        GlassIntensity.Subtle -> Color(0xFFFBFAF8) // çok hafif warm tint, neredeyse beyaz
     }
 
     Box(
@@ -147,15 +147,18 @@ fun GlassSurface(
             .clip(shape)
             .background(cardBg)
             .drawBehind {
-                // Specular highlight overlay
-                drawRect(
-                    brush = Brush.linearGradient(
-                        colors = listOf(Color.White.copy(alpha = 0.5f), Color.Transparent),
-                        start = Offset.Zero,
-                        end = Offset(size.width * 0.6f, size.height * 0.5f)
-                    ),
-                    size = Size(size.width, size.height * 0.5f)
-                )
+                // Specular highlight sadece Strong intensity'de — ambiance taşıması gereken
+                // hero özet kartlar için. Normal/Subtle'da beyaz DNA temiz tutulur.
+                if (intensity == GlassIntensity.Strong) {
+                    drawRect(
+                        brush = Brush.linearGradient(
+                            colors = listOf(Color.White.copy(alpha = 0.35f), Color.Transparent),
+                            start = Offset.Zero,
+                            end = Offset(size.width * 0.6f, size.height * 0.5f)
+                        ),
+                        size = Size(size.width, size.height * 0.5f)
+                    )
+                }
                 if (glow && accent != null) {
                     drawRect(accent.copy(alpha = 0.04f))
                 }
@@ -166,7 +169,7 @@ fun GlassSurface(
                     )
                 }
             }
-            .border(0.5.dp, Color.Black.copy(alpha = 0.06f), shape)
+            .border(1.dp, YkbBorderHairline, shape) // home ile aynı hairline
             .then(
                 if (onClick != null) Modifier.clickable(
                     interactionSource = interactionSource,

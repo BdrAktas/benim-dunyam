@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -30,10 +29,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.simay.lifebank.ui.components.AnimatedProgress
+import com.simay.lifebank.ui.components.ChecklistRow
 import com.simay.lifebank.ui.components.DomainHeader
 import com.simay.lifebank.ui.components.GlassButton
 import com.simay.lifebank.ui.components.GlassIntensity
@@ -115,7 +114,7 @@ fun SaglikScreen(onBack: () -> Unit) {
             .verticalScroll(rememberScrollState())
             .padding(bottom = 90.dp)
     ) {
-        DomainHeader(label = "Sağlık", subtitle = "Allianz Tamamlayıcı", onBack = onBack)
+        DomainHeader(label = "Sağlık", subtitle = "Allianz Tamamlayıcı", accent = Rose, onBack = onBack)
 
         // Tabs
         Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)) {
@@ -274,89 +273,17 @@ private fun IlacTab(
 ) {
     meds.forEachIndexed { i, med ->
         val key = "m-$i"
-        val done = medChecked[key] == true
-
-        GlassSurface(
-            animate = true,
-            onClick = { medChecked[key] = !done },
-            borderLeftColor = if (done) Moss else Rose,
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
-            modifier = Modifier
-                .padding(bottom = 8.dp)
-                .alpha(if (done) 0.5f else 1f)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Checkbox
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .size(22.dp)
-                        .border(
-                            width = 1.5.dp,
-                            color = if (done) Moss else Pebble,
-                            shape = RoundedCornerShape(6.dp)
-                        )
-                        .background(
-                            color = if (done) Moss.copy(alpha = 0.12f) else Color.Transparent,
-                            shape = RoundedCornerShape(6.dp)
-                        )
-                ) {
-                    if (done) {
-                        Text(
-                            text = "✓",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Moss
-                        )
-                    }
-                }
-
-                // Medication info
-                Column(modifier = Modifier.weight(1f)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = med.name,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Bark,
-                            fontFamily = SansFont,
-                            textDecoration = if (done) TextDecoration.LineThrough else TextDecoration.None
-                        )
-                        Text(
-                            text = med.time,
-                            fontSize = 12.sp,
-                            color = Stone,
-                            fontFamily = SansFont
-                        )
-                    }
-                    Text(
-                        text = med.dose,
-                        fontSize = 11.sp,
-                        color = Stone,
-                        fontFamily = SansFont,
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
-                }
-            }
-
-            // Remaining days warning
-            if (med.remaining <= 10) {
-                Text(
-                    text = "⚠ ${med.remaining} gün kaldı",
-                    fontSize = 11.sp,
-                    color = Terra,
-                    fontWeight = FontWeight.SemiBold,
-                    fontFamily = SansFont,
-                    modifier = Modifier.padding(start = 34.dp, top = 6.dp)
-                )
-            }
-        }
+        ChecklistRow(
+            title = med.name,
+            subtitle = med.dose,
+            trailing = med.time,
+            warning = if (med.remaining <= 10) "\u26a0 ${med.remaining} g\u00fcn kald\u0131" else null,
+            checked = medChecked[key] == true,
+            onCheck = { medChecked[key] = !(medChecked[key] ?: false) },
+            checkColor = Moss,
+            pendingColor = Rose,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
     }
 }
 

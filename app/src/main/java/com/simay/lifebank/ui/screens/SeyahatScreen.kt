@@ -23,6 +23,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -35,6 +36,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.simay.lifebank.ui.components.AnimatedProgress
+import com.simay.lifebank.ui.components.ChecklistRow
 import com.simay.lifebank.ui.components.DomainHeader
 import com.simay.lifebank.ui.components.GlassButton
 import com.simay.lifebank.ui.components.GlassIntensity
@@ -84,8 +86,15 @@ private data class PackCategory(
 )
 
 @Composable
-fun SeyahatScreen(onBack: () -> Unit) {
+fun SeyahatScreen(onBack: () -> Unit, intent: String? = null) {
     var tab by remember { mutableStateOf("plan") }
+    LaunchedEffect(intent) {
+        when (intent) {
+            "travel_insurance_quote" -> tab = "plan"
+            "currency_buy" -> tab = "plan"
+            "doc_checklist" -> tab = "docs"
+        }
+    }
     var activeDay by remember { mutableStateOf(0) }
     var checked by remember { mutableStateOf<Map<String, Boolean>>(emptyMap()) }
     var checkedPack by remember { mutableStateOf<Map<String, Boolean>>(emptyMap()) }
@@ -167,7 +176,7 @@ fun SeyahatScreen(onBack: () -> Unit) {
             .verticalScroll(rememberScrollState())
             .padding(bottom = 90.dp)
     ) {
-        DomainHeader(label = "Seyahat", subtitle = "Tokyo \u00B7 70 gün", onBack = onBack)
+        DomainHeader(label = "Seyahat", subtitle = "Tokyo \u00B7 70 gün", accent = Lav, onBack = onBack)
 
         Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)) {
             // Header card: Tokyo trip info
@@ -320,8 +329,19 @@ fun SeyahatScreen(onBack: () -> Unit) {
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    // Checkbox
-                                    CheckboxIcon(checked = ck)
+                                    // Checkbox — plan tab'a özgü küçük boyut
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier
+                                            .size(18.dp)
+                                            .background(
+                                                if (ck) Moss.copy(alpha = 0.12f) else Color.Transparent,
+                                                RoundedCornerShape(5.dp)
+                                            )
+                                            .border(1.5.dp, if (ck) Moss else Pebble, RoundedCornerShape(5.dp))
+                                    ) {
+                                        if (ck) Text("\u2713", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Moss)
+                                    }
                                     Text(
                                         text = item.title,
                                         fontSize = 13.sp,
@@ -434,7 +454,7 @@ fun SeyahatScreen(onBack: () -> Unit) {
                     term = "Aylık",
                     goal = 85000,
                     desc = "Tokyo seyahatiniz için hedef belirleyin, her ay otomatik JPY alımı yapılsın. Kur ortalaması ile avantaj.",
-                    cta = "Hedef Belirle",
+                    cta = "Planla",
                     color = Lav,
                     highlight = true,
                     socialProof = "Japonya seyahati planlayan 2.100 müşteri kullanıyor",
@@ -659,35 +679,16 @@ fun SeyahatScreen(onBack: () -> Unit) {
 
                     cat.items.forEachIndexed { ii, item ->
                         val key = "p-$ci-$ii"
-                        val done = checkedPack[key] == true
-
-                        GlassSurface(
-                            animate = true,
-                            onClick = {
+                        ChecklistRow(
+                            title = item,
+                            checked = checkedPack[key] == true,
+                            onCheck = {
                                 checkedPack = checkedPack.toMutableMap().apply {
                                     this[key] = !(this[key] ?: false)
                                 }
                             },
-                            intensity = if (done) GlassIntensity.Subtle else GlassIntensity.Normal,
-                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp),
-                            modifier = Modifier
-                                .padding(bottom = 4.dp)
-                                .alpha(if (done) 0.5f else 1f)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                CheckboxIcon(checked = done)
-                                Text(
-                                    text = item,
-                                    fontSize = 13.sp,
-                                    color = Bark,
-                                    fontFamily = SansFont,
-                                    textDecoration = if (done) TextDecoration.LineThrough else TextDecoration.None
-                                )
-                            }
-                        }
+                            modifier = Modifier.padding(bottom = 4.dp)
+                        )
                     }
 
                     Spacer(Modifier.height(14.dp))
@@ -697,25 +698,3 @@ fun SeyahatScreen(onBack: () -> Unit) {
     }
 }
 
-@Composable
-private fun CheckboxIcon(checked: Boolean) {
-    val borderColor = if (checked) Moss else Pebble
-    val bgColor = if (checked) Moss.copy(alpha = 0.12f) else Color.Transparent
-
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .size(18.dp)
-            .background(bgColor, RoundedCornerShape(5.dp))
-            .border(1.5.dp, borderColor, RoundedCornerShape(5.dp))
-    ) {
-        if (checked) {
-            Text(
-                text = "\u2713",
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold,
-                color = Moss
-            )
-        }
-    }
-}

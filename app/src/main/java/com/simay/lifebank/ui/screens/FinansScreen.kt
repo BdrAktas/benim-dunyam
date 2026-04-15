@@ -46,6 +46,7 @@ import com.simay.lifebank.ui.components.GlassPill
 import com.simay.lifebank.ui.components.GlassSurface
 import com.simay.lifebank.ui.components.GlassTabs
 import com.simay.lifebank.ui.components.ProactiveOffer
+import com.simay.lifebank.ui.components.TimelineEvent
 import com.simay.lifebank.ui.components.ProductCard
 import com.simay.lifebank.ui.components.TabItem
 import com.simay.lifebank.ui.components.animateCountUp
@@ -190,7 +191,7 @@ fun FinansScreen(onBack: () -> Unit) {
             .verticalScroll(rememberScrollState())
             .padding(bottom = 90.dp)
     ) {
-        DomainHeader(label = "Finansım", subtitle = "Genel Bakış", onBack = onBack)
+        DomainHeader(label = "Finansım", subtitle = "Genel Bakış", accent = Bark, onBack = onBack)
 
         // Tabs
         Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)) {
@@ -461,7 +462,7 @@ fun FinansScreen(onBack: () -> Unit) {
                     earnings = 4100,
                     goal = 50000,
                     desc = "Vadesiz hesabınızdaki ₺47.832'yi değerlendirin. Yapı Kredi'ye özel yüksek faiz.",
-                    cta = "Hedef Belirle",
+                    cta = "Planla",
                     color = Sky,
                     highlight = true,
                     savingsVs = "Vadesiz hesapta bu para 90 günde ₺0 kazanır, YUVAM'da ₺4.100",
@@ -727,25 +728,15 @@ fun FinansScreen(onBack: () -> Unit) {
                     val isPast = cf.day <= 11
                     val currentBalance = runningBalance
 
-                    Row(
-                        modifier = Modifier.padding(bottom = 2.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        // Timeline icon column
-                        Column(
-                            modifier = Modifier.width(44.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
+                    TimelineEvent(
+                        marker = {
                             GlassSurface(
                                 intensity = GlassIntensity.Subtle,
                                 contentPadding = PaddingValues(0.dp),
-                                modifier = Modifier
-                                    .graphicsLayerAlpha(if (isPast) 0.5f else 1f)
+                                modifier = Modifier.graphicsLayerAlpha(if (isPast) 0.5f else 1f)
                             ) {
                                 Box(
-                                    modifier = Modifier
-                                        .width(32.dp)
-                                        .height(32.dp),
+                                    modifier = Modifier.width(32.dp).height(32.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
@@ -754,24 +745,15 @@ fun FinansScreen(onBack: () -> Unit) {
                                     )
                                 }
                             }
-                            if (i < cashflow.size - 1) {
-                                Box(
-                                    modifier = Modifier
-                                        .width(1.5.dp)
-                                        .height(40.dp)
-                                        .padding(vertical = 3.dp)
-                                        .background(Color.Black.copy(alpha = 0.06f))
-                                )
-                            }
-                        }
-
-                        // Event card
+                        },
+                        showLine = i < cashflow.size - 1,
+                        lineColor = Color.Black.copy(alpha = 0.06f)
+                    ) {
                         GlassSurface(
                             animate = true,
                             intensity = if (isPast) GlassIntensity.Subtle else GlassIntensity.Normal,
                             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp),
                             modifier = Modifier
-                                .weight(1f)
                                 .padding(bottom = 6.dp)
                                 .graphicsLayerAlpha(if (isPast) 0.55f else 1f)
                         ) {
@@ -848,7 +830,7 @@ fun FinansScreen(onBack: () -> Unit) {
                     rate = "%2.89",
                     term = "36 aya kadar",
                     desc = "Kredi notunuza göre ön onaylı. Anında hesabınıza.",
-                    cta = "Hemen Kullan",
+                    cta = "Başvur",
                     color = Moss,
                     highlight = true,
                     socialProof = "Bu ay 8.200 müşteri kullandı \u00B7 Ort. 4 dk onay süresi",

@@ -1,4 +1,5 @@
----
+
+ ---
 name: design-critic
 description: Use this agent for any screen, component, or visual design decision in Benim Dünyam — new screens, component specs, layout questions, UX critique, accessibility review, or when something "feels off." Produces opinionated specs (hierarchy, typography, color, spacing, interaction) grounded in STYLE.md and design-system tokens. Invoke proactively before implementing non-trivial UI work.
 tools: Read, Grep, Glob, WebFetch, WebSearch

@@ -54,7 +54,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.Icon
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
@@ -103,8 +102,10 @@ import com.simay.lifebank.ui.theme.Rose
 import com.simay.lifebank.ui.theme.SansFont
 import com.simay.lifebank.ui.theme.Sky
 import com.simay.lifebank.ui.theme.Stone
+import com.simay.lifebank.ui.theme.Teal
 import com.simay.lifebank.ui.theme.Terra
 import com.simay.lifebank.ui.theme.YkbBorderHairline
+import com.simay.lifebank.ui.theme.YkbNeutral300
 import com.simay.lifebank.ui.theme.YkbNeutral900
 
 class MainActivity : ComponentActivity() {
@@ -344,9 +345,10 @@ private fun GlassBottomBar(
         ) {
             bottomTabs.forEach { tab ->
                 val isPanelOpen = activePanel == "benimdunyam"
+                val panelActive = isPanelOpen || currentRoute in domainSubRoutes
                 val isActive = when (tab.route) {
-                    "benimdunyam" -> isPanelOpen || currentRoute in domainSubRoutes
-                    else          -> currentRoute == tab.route
+                    "benimdunyam" -> panelActive
+                    else          -> !panelActive && currentRoute == tab.route
                 }
                 val isBouncing = bouncingTab == tab.route
                 val scale by animateFloatAsState(
@@ -359,15 +361,8 @@ private fun GlassBottomBar(
                     finishedListener = { bouncingTab = null }
                 )
 
-                // Toggle affordance: panel açıkken ikon + label değişir
-                val displayIcon = if (tab.route == "benimdunyam" && isPanelOpen)
-                    Icons.Rounded.KeyboardArrowDown
-                else
-                    tab.icon
-                val displayLabel = if (tab.route == "benimdunyam" && isPanelOpen)
-                    "Kapat"
-                else
-                    tab.label
+                val displayIcon = tab.icon
+                val displayLabel = tab.label
 
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -427,7 +422,7 @@ private val domainShortcuts = listOf(
     DomainShortcut("aracim",  "Aracım",     "Aracınızın\nDeğerini İzleyin",    Moss, R.drawable.ic_stitch_aracim),
     DomainShortcut("seyahat", "Seyahatim",  "Seyahatinizi\nPlanlayın",         Lav,  R.drawable.ic_stitch_seyahat),
     DomainShortcut("saglik",  "Sağlığım",   "Sağlığınıza\nÖncelik Verin",      Rose, R.drawable.ic_stitch_saglik),
-    DomainShortcut("ailem",   "Ailem",      "Ailenizle\nBağlantıda Kalın",     Terra, R.drawable.ic_stitch_ailem),
+    DomainShortcut("ailem",   "Ailem",      "Ailenizle\nBağlantıda Kalın",     Teal,  R.drawable.ic_stitch_ailem),
 )
 
 @Composable
@@ -439,14 +434,14 @@ private fun QuickLaunchPanel(onNavigate: (String) -> Unit) {
             .background(YkbCanvas)
             .padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 12.dp)
     ) {
-        // Başlık
-        Text(
-            text = "Benim Dünyam",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            color = YkbNeutral900,
-            fontFamily = SansFont,
-            modifier = Modifier.padding(bottom = 14.dp)
+        // Drag handle
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .padding(bottom = 14.dp)
+                .size(width = 36.dp, height = 4.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(YkbNeutral300)
         )
         DomainGrid(onNavigate)
     }
@@ -497,26 +492,21 @@ private fun DomainGrid(onNavigate: (String) -> Unit) {
                     painter = painterResource(domain.illustrationRes),
                     contentDescription = null,
                     contentScale = ContentScale.Fit,
-                    alignment = if (domain.route == "ailem") Alignment.BottomEnd else Alignment.Center,
-                    colorFilter = if (domain.route == "ailem") ColorFilter.colorMatrix(
-                        ColorMatrix(floatArrayOf(
-                            1f,    0f,    0f, 0f, 0f,
-                            0f, 1.07f,    0f, 0f, 0f,
-                            0f,    0f, 0.97f, 0f, 0f,
-                            0f,    0f,    0f, 1f, 0f
-                        ))
-                    ) else null,
+                    alignment = Alignment.Center,
                     modifier = Modifier
                         .then(
                             if (domain.route == "ailem")
-                                Modifier.height(190.dp).width(240.dp)
+                                Modifier.size(148.dp)
                             else
                                 Modifier.size(96.dp)
                         )
-                        .align(Alignment.BottomEnd)
+                        .align(
+                            if (domain.route == "ailem") Alignment.CenterEnd
+                            else Alignment.BottomEnd
+                        )
                         .offset(
-                            x = if (domain.route == "ailem") 16.dp else 8.dp,
-                            y = if (domain.route == "ailem") 16.dp else 8.dp
+                            x = if (domain.route == "ailem") 4.dp else 8.dp,
+                            y = if (domain.route == "ailem") 0.dp else 8.dp
                         )
                 )
             }

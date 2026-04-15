@@ -60,6 +60,10 @@ val YkbCardPurple3 = Color(0xFF7B3FC9)
 val YkbCardGreen1 = Color(0xFF0F4A1E)
 val YkbCardGreen2 = Color(0xFF1E7A33)
 val YkbCardGreen3 = Color(0xFF2DA04A)
+// Premium gold — Vakıfbank Platinum
+val YkbCardGold1 = Color(0xFF4A2800)
+val YkbCardGold2 = Color(0xFF7A4800)
+val YkbCardGold3 = Color(0xFFAA6A00)
 
 // Contextual
 val YkbStepPurple = Color(0xFF9B59B6)
@@ -92,13 +96,14 @@ val Sky = YkbPrimary
 val Lav = YkbAccentPurple
 val Honey = YkbAccentOrange
 val Rose = YkbWorldpayPurple
+val Teal = Color(0xFF0891B2)  // Ailem domain — sıcak teal, aile hissini yansıtır
 
 // Domain accent backgrounds (pale tints aligned with YKB accents)
 val AccentEvim = YkbPrimaryPale
 val AccentAracim = Color(0xFFD1FADF)
 val AccentSaglik = Color(0xFFFCE1E4)
 val AccentSeyahat = Color(0xFFEDE4FE)
-val AccentAilem = Color(0xFFFDE3CC)
+val AccentAilem = Color(0xFFCCEEF6)  // teal pale tint
 val AccentFinans = Color(0xFFFEF3C7)
 val AccentDefault = YkbNeutral100
 
