@@ -41,6 +41,7 @@ val YkbNavyDeep = Color(0xFF0A1F4A)
 val YkbNavyMid = Color(0xFF14306B)
 val YkbNavySoft = Color(0xFF1E4590)
 val YkbNavyCard = Color(0xFF0F1F3D)       // dark-matte card alternatifi (hero'dan bir ton açık)
+val YkbNavyPurple = Color(0xFF3D1A6B)     // AI ekranı gradient bitiş — navy'den mora köprü
 
 // Magazine-stack — full-saturation domain backgrounds
 // White text on each of these passes WCAG AA ≥ 4.5:1:
