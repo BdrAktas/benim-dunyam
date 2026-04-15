@@ -54,7 +54,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.OpenInNew
-import androidx.compose.material.icons.rounded.TrendingUp
+import androidx.compose.material.icons.automirrored.rounded.TrendingUp
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -991,8 +991,7 @@ private fun BenimDunyamMagazine(
                         this.alpha = alpha
                     },
                 onClick = { onNavigate(world.ctaRoute ?: world.id) },
-                onOrbClick = { onNavigate("ai_assistant") },
-                onNavigate = onNavigate
+                onOrbClick = { onNavigate("ai_assistant") }
             )
         }
 
@@ -1084,7 +1083,7 @@ internal fun AiOrbBadge(
         label = "orbPulse"
     )
     val clickableModifier = if (onClick != null)
-        Modifier.clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onClick)
+        Modifier.clickable(role = Role.Button, onClick = onClick)
     else Modifier
 
     Canvas(
@@ -1125,8 +1124,7 @@ private fun MagazineCoverCard(
     world: WorldCard,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
-    onOrbClick: () -> Unit,
-    onNavigate: (String) -> Unit = {}
+    onOrbClick: () -> Unit
 ) {
     val content = cardContent(world.id)
     val accent = world.color
@@ -1305,7 +1303,7 @@ private fun PrimaryBlock(
                         .padding(horizontal = Spacing.sm, vertical = 3.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Rounded.TrendingUp,
+                        imageVector = Icons.AutoMirrored.Rounded.TrendingUp,
                         contentDescription = null,
                         tint = Color.White,
                         modifier = Modifier.size(14.dp)
@@ -1337,141 +1335,6 @@ private fun InfoCard(content: @Composable ColumnScope.() -> Unit) {
             .padding(Spacing.md),
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) { content() }
-}
-
-@Composable
-private fun EvimCoverContent() {
-    // Primary: aylık ev harcaması anomaly (fatura + aidat + otomatik ödeme toplamı)
-    // Glance cevabı: "Bu ay ev harcamam geçen aya göre fark ediyor mu?"
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
-        PrimaryBlock(
-            topLabel = "Bu ay ev harcaman",
-            primary = "\u20BA6.990",
-            secondary = "Geçen ay \u20BA6.120 \u00B7 +%14 \u2022 anormal"
-        )
-        InfoCard {
-            StatRow("Yaklaşan fatura", "Do\u011falgaz \u00B7 bugün \u00B7 \u20BA847", valueBold = true)
-            StatRow("Sonraki kredi taksidi", "12 Nis \u00B7 \u20BA4.850")
-            StatRow("DASK yenileme", "15 Ara \u00B7 247 gün")
-            StatRow("Aidat", "Nisan \u00B7 \u20BA1.850 \u00B7 ödendi")
-        }
-    }
-}
-
-@Composable
-private fun AracimCoverContent() {
-    // Primary: kasko yenileme (takvim + yasa + fiyat beklentisi — lifestyle banking prototipi)
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
-        PrimaryBlock(
-            topLabel = "Kasko yenileme",
-            primary = "38 gün",
-            secondary = "Tahmini \u20BA4.870"
-        )
-        InfoCard {
-            StatRow("HGS bakiye", "\u20BA42 \u2022 2-3 geçiş kaldı", valueBold = true)
-            StatRow("Trafik sigortası", "54 gün \u00B7 \u20BA1.320")
-            StatRow("Muayene", "Kas 2026 \u00B7 7 ay")
-            StatRow("Son ceza kontrolü", "2 gün önce \u00B7 yok")
-        }
-    }
-}
-
-@Composable
-private fun SeyahatCoverContent() {
-    // Primary: aktif seyahat niyeti (uçak bileti / havalimanı işlem sinyalinden türetilir).
-    // Seyahat niyeti yoksa bu kart ana sayfaya gelmemeli — TODO: dinamik sıralama.
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
-        PrimaryBlock(
-            topLabel = "Yaklaşan seyahat",
-            primary = "Antalya 18 gün",
-            secondary = "Sigortan yok \u00B7 2 dk hallet"
-        )
-        InfoCard {
-            StatRow("Seyahat sigortası", "Güvenceye al", valueBold = true)
-            StatRow("Döviz hedefin", "\u20AC840 / \u20AC2.000 \u00B7 %42")
-            StatRow("Yurt dışı kart limiti", "\u20BA32K / \u20BA80K")
-            StatRow("Pasaport", "2 yıl geçerli")
-        }
-    }
-}
-
-@Composable
-private fun SaglikCoverContent() {
-    // Primary: tasarruf framing (value hissi + churn önleme). TSS kullanımı = elde tutma.
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
-        PrimaryBlock(
-            topLabel = "Bu yıl TSS tasarrufun",
-            primary = "\u20BA1.820",
-            secondary = "Yıllık limitin %82'si duruyor"
-        )
-        InfoCard {
-            StatRow("Check-up hakkın", "Kullanılmadı \u00B7 34 gün", valueBold = true)
-            StatRow("Poliçe yenileme", "3 Ağu \u00B7 113 gün")
-            StatRow("Cepten harcama", "\u20BA640 \u00B7 geri al")
-            StatRow("Yakındaki anlaşmalı", "3 km içinde 4 merkez")
-        }
-    }
-}
-
-@Composable
-private fun AilemCoverContent() {
-    // Primary: okul harcı (rotating — Mart-Eyl için en güçlü takvim olayı).
-    // Diğer aylarda: "Devlet katkısı bu yıl +₺6.200" veya "İlk Param %71".
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
-        PrimaryBlock(
-            topLabel = "Yaklaşan aile yükümlülüğü",
-            primary = "18 gün \u00B7 \u20BA8.500",
-            secondary = "Üniversite harcı \u00B7 hazır mısın?"
-        )
-        InfoCard {
-            StatRow("Düzenli transfer", "Anne \u20BA2.500 \u00B7 1 May", valueBold = true)
-            StatRow("Devlet katkısı (yıl)", "+\u20BA6.200")
-            StatRow("BES birikim", "\u20BA24.8K")
-            StatRow("Çocuk birikimi", "\u0130lk Param \u20BA42.3K \u00B7 %71")
-        }
-    }
-}
-
-@Composable
-private fun ParamCoverContent() {
-    // Primary: cash drag uyarısı (Revolut/Monzo pattern'i, enflasyon ortamı kritik).
-    // "Net varlık" vanity metric — çıkarıldı.
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
-        PrimaryBlock(
-            topLabel = "Vadesizde atıl",
-            primary = "\u20BA80K",
-            secondary = "30+ gün hareketsiz \u00B7 bu ay ~\u20BA320 eridi"
-        )
-        InfoCard {
-            StatRow("En yakın vade", "5 gün \u00B7 +\u20BA4.120 \u2022 dönüştür?", valueBold = true)
-            StatRow("Portföyün bu ay", "+%2.4 \u00B7 \u20BA5.240")
-            StatRow("Findeks", "1.842 \u00B7 +12")
-            StatRow("Altın hedefin", "\u20BA68K \u00B7 %82")
-        }
-    }
-}
-
-@Composable
-private fun AlertBadge(count: Int, tint: Color) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        modifier = Modifier
-            .clip(RoundedCornerShape(Radius.pill))
-            .background(tint.copy(alpha = 0.12f))
-            .padding(horizontal = 8.dp, vertical = 2.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .size(6.dp)
-                .clip(CircleShape)
-                .background(tint)
-        )
-        Text(
-            text = count.toString(),
-            style = YkbType.Badge.copy(color = tint, fontWeight = FontWeight.Bold)
-        )
-    }
 }
 
 @Composable
@@ -1608,7 +1471,7 @@ private fun MaasShimmerCard(onParaEkle: () -> Unit) {
     val sweep by t.animateFloat(
         initialValue = 0f, targetValue = 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(2400, easing = androidx.compose.animation.core.LinearEasing),
+            animation = tween(2400, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ), label = "sweep"
     )
