@@ -991,6 +991,7 @@ private fun BenimDunyamMagazine(
                         this.alpha = alpha
                     },
                 onClick = { onNavigate(world.ctaRoute ?: world.id) },
+                onOrbClick = { onNavigate("ai_assistant") },
                 onNavigate = onNavigate
             )
         }
@@ -1066,7 +1067,11 @@ private fun cardContent(id: String): CardContent = when (id) {
 }
 
 @Composable
-private fun AiOrbBadge(modifier: Modifier = Modifier) {
+internal fun AiOrbBadge(
+    modifier: Modifier = Modifier,
+    size: androidx.compose.ui.unit.Dp = 26.dp,
+    onClick: (() -> Unit)? = null
+) {
     val inf = rememberInfiniteTransition(label = "aiOrb")
     val rotation by inf.animateFloat(
         initialValue = 0f, targetValue = 360f,
@@ -1078,10 +1083,15 @@ private fun AiOrbBadge(modifier: Modifier = Modifier) {
         animationSpec = infiniteRepeatable(tween(1100, easing = FastOutSlowInEasing), RepeatMode.Reverse),
         label = "orbPulse"
     )
+    val clickableModifier = if (onClick != null)
+        Modifier.clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onClick)
+    else Modifier
+
     Canvas(
         modifier = modifier
-            .size(26.dp)
+            .size(size)
             .graphicsLayer { scaleX = pulse; scaleY = pulse }
+            .then(clickableModifier)
     ) {
         // dönen iridescent gövde
         rotate(rotation) {
@@ -1098,11 +1108,12 @@ private fun AiOrbBadge(modifier: Modifier = Modifier) {
             )
         }
         // cam parlaması — sol üst köşe
+        val drawSize = this.size
         drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(Color.White.copy(alpha = 0.58f), Color.Transparent),
-                center = Offset(size.width * 0.30f, size.height * 0.22f),
-                radius = size.minDimension * 0.36f
+                center = Offset(drawSize.width * 0.30f, drawSize.height * 0.22f),
+                radius = drawSize.minDimension * 0.36f
             )
         )
     }
@@ -1114,6 +1125,7 @@ private fun MagazineCoverCard(
     world: WorldCard,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
+    onOrbClick: () -> Unit,
     onNavigate: (String) -> Unit = {}
 ) {
     val content = cardContent(world.id)
@@ -1178,7 +1190,7 @@ private fun MagazineCoverCard(
                     style = YkbType.Heading2.copy(color = YkbNeutral900, fontWeight = FontWeight.SemiBold)
                 )
             }
-            AiOrbBadge()
+            AiOrbBadge(onClick = onOrbClick)
         }
 
         // Tek olay cümlesi — primary scan
