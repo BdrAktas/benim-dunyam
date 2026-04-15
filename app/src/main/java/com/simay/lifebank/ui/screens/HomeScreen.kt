@@ -768,15 +768,17 @@ internal fun AiOrbBadge(
     onClick: (() -> Unit)? = null
 ) {
     val inf = rememberInfiniteTransition(label = "aiOrb")
-    val rotation by inf.animateFloat(
-        initialValue = 0f, targetValue = 360f,
-        animationSpec = infiniteRepeatable(tween(2800, easing = LinearEasing), RepeatMode.Restart),
-        label = "orbRot"
+    // nefes alan dış halo
+    val halo by inf.animateFloat(
+        initialValue = 0.82f, targetValue = 1.05f,
+        animationSpec = infiniteRepeatable(tween(2000, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "orbHalo"
     )
-    val pulse by inf.animateFloat(
-        initialValue = 0.88f, targetValue = 1.12f,
-        animationSpec = infiniteRepeatable(tween(1100, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "orbPulse"
+    // blob yörüngesi — 0°→360°, yavaş ve akışkan
+    val angle by inf.animateFloat(
+        initialValue = 0f, targetValue = 360f,
+        animationSpec = infiniteRepeatable(tween(4000, easing = LinearEasing), RepeatMode.Restart),
+        label = "orbAngle"
     )
     val clickableModifier = if (onClick != null)
         Modifier.clickable(role = Role.Button, onClick = onClick)
@@ -785,31 +787,82 @@ internal fun AiOrbBadge(
     Canvas(
         modifier = modifier
             .size(size)
-            .graphicsLayer { scaleX = pulse; scaleY = pulse }
             .then(clickableModifier)
     ) {
-        // dönen iridescent gövde
-        rotate(rotation) {
-            drawCircle(
-                brush = Brush.sweepGradient(
-                    listOf(
-                        Color(0xFF7B2FF7),
-                        Color(0xFFE040FB),
-                        Color(0xFF00D4FF),
-                        Color(0xFF40C4FF),
-                        Color(0xFF7B2FF7),
-                    )
-                )
-            )
-        }
-        // cam parlaması — sol üst köşe
         val drawSize = this.size
+        val r = drawSize.minDimension / 2f
+        val cx = drawSize.width / 2f
+        val cy = drawSize.height / 2f
+        val rad = angle * kotlin.math.PI / 180.0
+        val drift = r * 0.35f
+
+        // nefes alan dış halo halkası
         drawCircle(
             brush = Brush.radialGradient(
-                colors = listOf(Color.White.copy(alpha = 0.58f), Color.Transparent),
+                colors = listOf(Color(0x557B2FF7), Color.Transparent),
+                center = Offset(cx, cy),
+                radius = r * halo * 1.4f
+            ),
+            radius = r * halo * 1.4f,
+            center = Offset(cx, cy)
+        )
+
+        // koyu taban
+        drawCircle(color = Color(0xFF1A0533), radius = r, center = Offset(cx, cy))
+
+        // mor blob — faz 0°
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(Color(0xCC7B2FF7), Color.Transparent),
+                center = Offset(
+                    cx + (kotlin.math.cos(rad) * drift).toFloat(),
+                    cy + (kotlin.math.sin(rad) * drift).toFloat()
+                ),
+                radius = r * 0.70f
+            ),
+            radius = r,
+            center = Offset(cx, cy)
+        )
+
+        // camgöbeği blob — faz +120°
+        val rad2 = rad + 2.0 * kotlin.math.PI / 3.0
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(Color(0xCC00D4FF), Color.Transparent),
+                center = Offset(
+                    cx + (kotlin.math.cos(rad2) * drift).toFloat(),
+                    cy + (kotlin.math.sin(rad2) * drift).toFloat()
+                ),
+                radius = r * 0.70f
+            ),
+            radius = r,
+            center = Offset(cx, cy)
+        )
+
+        // pembe blob — faz +240°
+        val rad3 = rad + 4.0 * kotlin.math.PI / 3.0
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(Color(0xCCE040FB), Color.Transparent),
+                center = Offset(
+                    cx + (kotlin.math.cos(rad3) * drift).toFloat(),
+                    cy + (kotlin.math.sin(rad3) * drift).toFloat()
+                ),
+                radius = r * 0.70f
+            ),
+            radius = r,
+            center = Offset(cx, cy)
+        )
+
+        // cam parlaması — sol üst köşe
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(Color.White.copy(alpha = 0.50f), Color.Transparent),
                 center = Offset(drawSize.width * 0.30f, drawSize.height * 0.22f),
-                radius = drawSize.minDimension * 0.36f
-            )
+                radius = r * 0.36f
+            ),
+            radius = r,
+            center = Offset(cx, cy)
         )
     }
 }
