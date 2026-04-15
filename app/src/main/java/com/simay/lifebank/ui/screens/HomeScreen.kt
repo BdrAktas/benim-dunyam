@@ -60,6 +60,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.launch
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -82,9 +84,17 @@ import com.simay.lifebank.ui.theme.Rose
 import com.simay.lifebank.ui.theme.SansFont
 import com.simay.lifebank.ui.theme.Sky
 import com.simay.lifebank.ui.theme.Spacing
+import com.simay.lifebank.ui.theme.Teal
 import com.simay.lifebank.ui.theme.Terra
 import com.simay.lifebank.ui.theme.YkbAccentHighlight
 import com.simay.lifebank.ui.theme.YkbBorderHairline
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import com.simay.lifebank.R
+import com.simay.lifebank.ui.theme.YkbCardGold1
+import com.simay.lifebank.ui.theme.YkbCardGold2
+import com.simay.lifebank.ui.theme.YkbCardGold3
 import com.simay.lifebank.ui.theme.YkbCardGreen1
 import com.simay.lifebank.ui.theme.YkbCardGreen2
 import com.simay.lifebank.ui.theme.YkbCardGreen3
@@ -105,6 +115,7 @@ import com.simay.lifebank.ui.theme.YkbNavyDeep
 import com.simay.lifebank.ui.theme.YkbNavyMid
 import com.simay.lifebank.ui.theme.YkbNavySoft
 import com.simay.lifebank.ui.theme.YkbNeutral700
+import com.simay.lifebank.ui.theme.YkbCanvas
 import com.simay.lifebank.ui.theme.YkbSurfaceCard
 import com.simay.lifebank.ui.theme.YkbType
 import com.simay.lifebank.ui.util.formatTRY
@@ -120,7 +131,9 @@ private data class WorldCard(
     val moneyLabel: String,  // YK ürününe bağlı para göstergesi — secondary
     val alertCount: Int,     // 0 ise badge gösterilmez
     val alertColor: Color,   // badge tint (Terra = acil, Honey = hatırlatma, domain = info)
-    val color: Color         // domain accent (sol bar + icon tint)
+    val color: Color,        // domain accent (sol bar + icon tint)
+    val ctaRoute: String? = null,  // intent-carrying route; null → fallback to id
+    @DrawableRes val illustrationRes: Int? = null  // Stitch doodle; null → icon fallback
 )
 private data class CreditOverview(
     val totalLimit: Int,
@@ -136,7 +149,8 @@ private data class CreditLimit(
     val icon: androidx.compose.ui.graphics.vector.ImageVector,
     val totalLimit: Int,
     val used: Int,
-    val accent: Color
+    val accent: Color,
+    val route: String
 ) {
     val available: Int get() = totalLimit - used
 }
@@ -177,27 +191,36 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
         // Evim — Doğalgaz son gün · 1 acil
         WorldCard("evim", Icons.Rounded.Home, "Evim",
             timeLabel = "", moneyLabel = "",
-            alertCount = 1, alertColor = Terra, color = Sky),
+            alertCount = 1, alertColor = Terra, color = Sky,
+            ctaRoute = "evim?intent=pay_bill",
+            illustrationRes = R.drawable.ic_stitch_evim),
         // Aracım — HGS bakiye düşük · 1 acil
         WorldCard("aracim", Icons.Rounded.DirectionsCar, "Arac\u0131m",
             timeLabel = "", moneyLabel = "",
-            alertCount = 1, alertColor = Honey, color = Moss),
+            alertCount = 1, alertColor = Honey, color = Moss,
+            ctaRoute = "aracim?intent=kasko_quote",
+            illustrationRes = R.drawable.ic_stitch_aracim),
         // Sağlığım — Cepten ödeme geri ödeme fırsatı · 1 fırsat
         WorldCard("saglik", Icons.Rounded.MonitorHeart, "Sa\u011fl\u0131\u011f\u0131m",
             timeLabel = "", moneyLabel = "",
-            alertCount = 1, alertColor = Honey, color = Rose),
+            alertCount = 1, alertColor = Honey, color = Rose,
+            illustrationRes = R.drawable.ic_stitch_saglik),
         // Seyahat — Sigorta eksik · 1 acil
         WorldCard("seyahat", Icons.Rounded.Flight, "Seyahatim",
             timeLabel = "", moneyLabel = "",
-            alertCount = 1, alertColor = Lav, color = Lav),
+            alertCount = 1, alertColor = Lav, color = Lav,
+            ctaRoute = "seyahat?intent=travel_insurance_quote",
+            illustrationRes = R.drawable.ic_stitch_seyahat),
         // Ailem — Okul harcı yaklaşıyor · 1 acil
         WorldCard("ailem", Icons.Rounded.Groups, "Ailem",
             timeLabel = "", moneyLabel = "",
-            alertCount = 1, alertColor = Terra, color = Terra),
+            alertCount = 1, alertColor = Teal, color = Teal,
+            illustrationRes = R.drawable.ic_stitch_ailem),
         // Param — Cash drag + vade fırsatı · 2 fırsat
         WorldCard("param", Icons.Rounded.AccountBalanceWallet, "Param",
             timeLabel = "", moneyLabel = "",
-            alertCount = 2, alertColor = Honey, color = Honey),
+            alertCount = 2, alertColor = Honey, color = Honey,
+            illustrationRes = R.drawable.ic_stitch_param),
     )
 
     val smartFeed = listOf(
@@ -222,27 +245,30 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
     val creditLimits = listOf(
         CreditLimit(
             id = "ihtiyac",
-            name = "\u0130htiya\u00e7 Kredisi",
+            name = "İhtiyaç Kredisi",
             icon = Icons.Rounded.AccountBalanceWallet,
             totalLimit = 150000,
             used = 35000,
-            accent = Moss
+            accent = YkbDomainParam,
+            route = "finans"
         ),
         CreditLimit(
             id = "tasit",
-            name = "Ta\u015f\u0131t Kredisi \u00f6n onay",
+            name = "Taşıt Kredisi ön onay",
             icon = Icons.Rounded.DirectionsCar,
             totalLimit = 120000,
             used = 0,
-            accent = Sky
+            accent = YkbDomainAracim,
+            route = "aracim"
         ),
         CreditLimit(
             id = "konut",
-            name = "Konut Kredisi \u00f6n onay",
+            name = "Konut Kredisi ön onay",
             icon = Icons.Rounded.Home,
             totalLimit = 500000,
             used = 0,
-            accent = Rose
+            accent = YkbDomainEvim,
+            route = "evim"
         ),
         CreditLimit(
             id = "kmh",
@@ -250,7 +276,8 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
             icon = Icons.Rounded.AccountBalance,
             totalLimit = 25000,
             used = 0,
-            accent = Honey
+            accent = YkbDomainParam,
+            route = "finans"
         ),
     )
     val creditOverview = CreditOverview(
@@ -414,12 +441,28 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
                         brandBadge = "\uD83C\uDF40",
                         onClick = { onNavigate("finans") }
                     )
+                    AccountGlassCard(
+                        cardName = "Kullanılabilir Limit",
+                        topLabel = "Platinum Plus",
+                        topEmoji = null,
+                        amount = formatTRY(62500),
+                        last4 = "9981",
+                        statementDate = "15 May",
+                        cardGradient = listOf(YkbCardGold1, YkbCardGold2, YkbCardGold3),
+                        logoRes = R.drawable.ic_vb_logo,
+                        onClick = { onNavigate("finans") }
+                    )
                 }
             }
         }
 
         // ═══ BENİM DÜNYAM — magazine stack (editorial pager kapakları) ═══
-        Column(modifier = Modifier.padding(vertical = Spacing.md)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(YkbCanvas)
+                .padding(vertical = Spacing.lg)
+        ) {
             BenimDunyamMagazine(
                 worlds = worlds,
                 onNavigate = onNavigate
@@ -438,7 +481,7 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
             CreditLimitsSection(
                 overview = creditOverview,
                 limits = creditLimits,
-                onLimitClick = { onNavigate("finans") },
+                onLimitClick = { limit -> onNavigate(limit.route) },
                 onSeeAll = { onNavigate("finans") }
             )
         }
@@ -898,7 +941,8 @@ private fun BenimDunyamMagazine(
                         scaleY = scale
                         this.alpha = alpha
                     },
-                onClick = { onNavigate(world.id) }
+                onClick = { onNavigate(world.ctaRoute ?: world.id) },
+                onNavigate = onNavigate
             )
         }
 
@@ -927,7 +971,8 @@ private fun BenimDunyamMagazine(
 private data class Pill(
     val text: String,
     val actionText: String? = null,
-    val actionColor: Color = Terra
+    val actionColor: Color = Terra,
+    val actionRoute: String? = null  // navigate here when actionText tapped
 )
 
 private data class CardContent(
@@ -945,7 +990,7 @@ private fun cardContent(id: String): CardContent = when (id) {
         emoji = "\uD83C\uDFE0",
         title = "Yakla\u015fan 3 fatura\n\u00f6demen var",
         pills = listOf(
-            Pill("Su Bug\u00fcn", actionText = "\u00d6de", actionColor = Terra),
+            Pill("Su Bug\u00fcn", actionText = "\u00d6de", actionColor = Terra, actionRoute = "evim?intent=pay_bill&provider=iski"),
             Pill("Elektrik Yar\u0131n"),
             Pill("Do\u011falgaz Son 2 G\u00fcn")
         ),
@@ -999,7 +1044,7 @@ private fun cardContent(id: String): CardContent = when (id) {
         footnote = "Son 30 g\u00fcnde eriyen miktar",
         cta = "3 se\u00e7ene\u011fi g\u00f6r"
     )
-    else -> CardContent("", "", emptyList(), "", "", "", "Detay")
+    else -> CardContent("", "", emptyList(), "", "", "", "İncele")
 }
 
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
@@ -1007,7 +1052,8 @@ private fun cardContent(id: String): CardContent = when (id) {
 private fun MagazineCoverCard(
     world: WorldCard,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onNavigate: (String) -> Unit = {}
 ) {
     val content = cardContent(world.id)
     val accent = world.color
@@ -1016,8 +1062,17 @@ private fun MagazineCoverCard(
     Column(
         modifier = modifier
             .fillMaxHeight()
+            .shadow(
+                elevation = 12.dp,
+                shape = shape,
+                ambientColor = Color.Black.copy(alpha = 0.10f),
+                spotColor = Color.Black.copy(alpha = 0.18f)
+            )
             .clip(shape)
-            .background(Color.White)
+            .background(YkbSurfaceCard)
+            .drawBehind {
+                drawRect(color = accent, size = androidx.compose.ui.geometry.Size(4.dp.toPx(), size.height))
+            }
             .border(1.dp, YkbBorderHairline, shape)
             .clickable(role = Role.Button, onClick = onClick)
             .padding(horizontal = Spacing.xl, vertical = Spacing.xl),
@@ -1033,19 +1088,29 @@ private fun MagazineCoverCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(accent.copy(alpha = 0.12f))
-                ) {
-                    Icon(
-                        imageVector = world.icon,
+                if (world.illustrationRes != null) {
+                    Image(
+                        painter = painterResource(world.illustrationRes),
                         contentDescription = null,
-                        tint = accent,
-                        modifier = Modifier.size(22.dp)
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(Radius.iconBg))
                     )
+                } else {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(accent.copy(alpha = 0.12f))
+                    ) {
+                        Icon(
+                            imageVector = world.icon,
+                            contentDescription = null,
+                            tint = accent,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
                 }
                 Text(
                     text = world.label,
@@ -1081,7 +1146,7 @@ private fun MagazineCoverCard(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            content.pills.forEach { p -> CardPill(p) }
+            content.pills.forEach { p -> CardPill(p, onNavigate = onNavigate) }
         }
 
 
@@ -1143,7 +1208,7 @@ private fun MagazineCoverCard(
 }
 
 @Composable
-private fun CardPill(pill: Pill) {
+private fun CardPill(pill: Pill, onNavigate: (String) -> Unit = {}) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -1164,7 +1229,10 @@ private fun CardPill(pill: Pill) {
                     color = pill.actionColor,
                     fontWeight = FontWeight.Bold,
                     textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline
-                )
+                ),
+                modifier = if (pill.actionRoute != null)
+                    Modifier.clickable(role = Role.Button) { onNavigate(pill.actionRoute) }
+                else Modifier
             )
         }
     }
@@ -1408,6 +1476,7 @@ private fun AccountGlassCard(
     cardGradient: List<Color>,
     brandBadge: String? = null,
     marqueeText: String? = null,
+    @DrawableRes logoRes: Int? = null,
     onClick: () -> Unit = {}
 ) {
     val shape = RoundedCornerShape(18.dp)
@@ -1444,7 +1513,7 @@ private fun AccountGlassCard(
                 .padding(14.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Top: label + optional emoji, with last4 directly beneath
+            // Top: label + optional emoji/logo, with last4 directly beneath
             Column {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -1458,11 +1527,16 @@ private fun AccountGlassCard(
                         fontFamily = SansFont,
                         letterSpacing = 0.3.sp
                     )
-                    if (topEmoji != null) {
-                        Text(topEmoji, fontSize = 13.sp)
-                    }
-                    if (brandBadge != null) {
-                        Text(brandBadge, fontSize = 18.sp)
+                    if (topEmoji != null) Text(topEmoji, fontSize = 13.sp)
+                    if (brandBadge != null) Text(brandBadge, fontSize = 18.sp)
+                    if (logoRes != null) {
+                        Image(
+                            painter = painterResource(logoRes),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(18.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                        )
                     }
                 }
                 Text(
