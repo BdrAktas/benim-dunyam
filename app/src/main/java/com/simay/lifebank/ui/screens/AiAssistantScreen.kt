@@ -7,6 +7,12 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.Canvas
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -26,6 +32,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import com.simay.lifebank.ui.components.AiOrbBadge
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountBalance
 import androidx.compose.material.icons.rounded.ArrowBack
@@ -50,11 +57,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
+import com.simay.lifebank.ui.theme.YkbAccentPurple
+import com.simay.lifebank.ui.theme.YkbIridescentRose
+import com.simay.lifebank.ui.theme.YkbPrimary
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -78,6 +92,98 @@ import com.simay.lifebank.ui.theme.YkbSurfaceCard
 import com.simay.lifebank.ui.theme.YkbType
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
+@Composable
+private fun AmbientLayer() {
+    val inf = rememberInfiniteTransition(label = "ambient")
+
+    val drift1 by inf.animateFloat(
+        initialValue = 0f, targetValue = (2.0 * PI).toFloat(),
+        animationSpec = infiniteRepeatable(tween(8000, easing = LinearEasing), RepeatMode.Restart),
+        label = "drift1"
+    )
+    val drift2 by inf.animateFloat(
+        initialValue = 0f, targetValue = (2.0 * PI).toFloat(),
+        animationSpec = infiniteRepeatable(tween(13000, easing = LinearEasing), RepeatMode.Restart),
+        label = "drift2"
+    )
+    val drift3 by inf.animateFloat(
+        initialValue = 0f, targetValue = (2.0 * PI).toFloat(),
+        animationSpec = infiniteRepeatable(tween(19000, easing = LinearEasing), RepeatMode.Restart),
+        label = "drift3"
+    )
+    val drift4 by inf.animateFloat(
+        initialValue = 0f, targetValue = (2.0 * PI).toFloat(),
+        animationSpec = infiniteRepeatable(tween(11000, easing = LinearEasing), RepeatMode.Restart),
+        label = "drift4"
+    )
+
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val w    = size.width
+        val h    = size.height
+        val cx   = w / 2f
+        val cy   = h / 2f
+        val xAmp = w * 0.30f
+        val yAmp = h * 0.20f
+
+        val phase1 = 0f
+        val phase2 = (2.0 * PI / 3.0).toFloat()   // 120°
+        val phase3 = (4.0 * PI / 3.0).toFloat()   // 240°
+        val phase4 = (PI / 3.0).toFloat()          //  60°
+
+        // Blob 1 — YkbPrimary, en büyük, 8s
+        val b1x = cx + cos(drift1 + phase1) * xAmp
+        val b1y = cy + sin(drift1 + phase1) * yAmp
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(YkbPrimary.copy(alpha = 0.22f), Color.Transparent),
+                center = Offset(b1x, b1y),
+                radius = w * 0.70f
+            ),
+            radius = w * 0.70f,
+            center = Offset(b1x, b1y)
+        )
+
+        // Blob 2 — YkbNavyPurple, 13s
+        val b2x = cx + cos(drift2 + phase2) * xAmp
+        val b2y = cy + sin(drift2 + phase2) * yAmp
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(YkbNavyPurple.copy(alpha = 0.18f), Color.Transparent),
+                center = Offset(b2x, b2y),
+                radius = w * 0.60f
+            ),
+            radius = w * 0.60f,
+            center = Offset(b2x, b2y)
+        )
+
+        // Blob 3 — YkbAccentPurple, 19s
+        val b3x = cx + cos(drift3 + phase3) * xAmp
+        val b3y = cy + sin(drift3 + phase3) * yAmp
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(YkbAccentPurple.copy(alpha = 0.15f), Color.Transparent),
+                center = Offset(b3x, b3y),
+                radius = w * 0.50f
+            ),
+            radius = w * 0.50f,
+            center = Offset(b3x, b3y)
+        )
+
+        // Blob 4 — YkbIridescentRose, 11s
+        val b4x = cx + cos(drift4 + phase4) * xAmp
+        val b4y = cy + sin(drift4 + phase4) * yAmp
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(YkbIridescentRose.copy(alpha = 0.12f), Color.Transparent),
+                center = Offset(b4x, b4y),
+                radius = w * 0.40f
+            ),
+            radius = w * 0.40f,
+            center = Offset(b4x, b4y)
+        )
+    }
+}
 
 private enum class MicState { IDLE, LISTENING, ANSWERED }
 
@@ -139,6 +245,8 @@ fun AiAssistantScreen(onBack: () -> Unit, onNavigate: (String) -> Unit) {
                 .statusBarsPadding(),
             contentAlignment = Alignment.Center
         ) {
+            AmbientLayer()
+
             AiOrbBadge(size = 160.dp)
 
             Box(
