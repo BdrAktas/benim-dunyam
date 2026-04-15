@@ -768,11 +768,17 @@ internal fun AiOrbBadge(
     onClick: (() -> Unit)? = null
 ) {
     val inf = rememberInfiniteTransition(label = "aiOrb")
-    // nefes alan dış halo
+    // nefes alan dış halo — büyüklük
     val halo by inf.animateFloat(
         initialValue = 0.82f, targetValue = 1.05f,
         animationSpec = infiniteRepeatable(tween(2000, easing = FastOutSlowInEasing), RepeatMode.Reverse),
         label = "orbHalo"
+    )
+    // halo merkezi yavaşça orb'un dışına doğru kayar (blob'dan farklı hız)
+    val haloAngle by inf.animateFloat(
+        initialValue = 0f, targetValue = 360f,
+        animationSpec = infiniteRepeatable(tween(6500, easing = LinearEasing), RepeatMode.Restart),
+        label = "orbHaloAngle"
     )
     // blob yörüngesi — 0°→360°, yavaş ve akışkan
     val angle by inf.animateFloat(
@@ -796,15 +802,22 @@ internal fun AiOrbBadge(
         val rad = angle * kotlin.math.PI / 180.0
         val drift = r * 0.35f
 
-        // nefes alan dış halo halkası
+        // halo merkezi yavaşça kayar → glow orb'un dışına asimetrik taşar
+        val haloRad = haloAngle * kotlin.math.PI / 180.0
+        val haloSlip = r * 0.30f
+        val haloCx = cx + (kotlin.math.cos(haloRad) * haloSlip).toFloat()
+        val haloCy = cy + (kotlin.math.sin(haloRad) * haloSlip).toFloat()
+        val haloRadius = r * halo * 2.0f
+
+        // nefes alan dış halo — merkezden kayarak dışarı taşar
         drawCircle(
             brush = Brush.radialGradient(
-                colors = listOf(Color(0x557B2FF7), Color.Transparent),
-                center = Offset(cx, cy),
-                radius = r * halo * 1.4f
+                colors = listOf(Color(0x887B2FF7), Color(0x2200CFFF), Color.Transparent),
+                center = Offset(haloCx, haloCy),
+                radius = haloRadius
             ),
-            radius = r * halo * 1.4f,
-            center = Offset(cx, cy)
+            radius = haloRadius,
+            center = Offset(haloCx, haloCy)
         )
 
         // koyu taban
