@@ -31,7 +31,6 @@ import com.simay.lifebank.ui.theme.YkbIridescentRose
 import com.simay.lifebank.ui.theme.YkbNavyDeep
 import com.simay.lifebank.ui.theme.YkbNavyMid
 import com.simay.lifebank.ui.theme.YkbNavyPurple
-import com.simay.lifebank.ui.theme.YkbPrimary
 import com.simay.lifebank.ui.theme.YkbPrimaryLight
 import com.simay.lifebank.ui.theme.YkbWhite
 import kotlin.math.PI
@@ -54,23 +53,11 @@ fun AiOrbBadge(
 ) {
     val inf = rememberInfiniteTransition(label = "aiOrb")
 
-    // Halo nefes — büyüklük nabzı
-    val orbBreathe by inf.animateFloat(
-        initialValue = 0.88f, targetValue = 1.08f,
-        animationSpec = infiniteRepeatable(tween(3200, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "orbBreathe"
-    )
     // Blob yörüngesi — 9s; yavaş olduğu için bireysel bloblar seçilemiyor
     val orbDrift by inf.animateFloat(
         initialValue = 0f, targetValue = 360f,
         animationSpec = infiniteRepeatable(tween(9000, easing = LinearEasing), RepeatMode.Restart),
         label = "orbDrift"
-    )
-    // Halo merkezi kayması — 14s (orbDrift'ten farklı → faz kilidi yok)
-    val orbHueDrift by inf.animateFloat(
-        initialValue = 0f, targetValue = 360f,
-        animationSpec = infiniteRepeatable(tween(14000, easing = LinearEasing), RepeatMode.Restart),
-        label = "orbHueDrift"
     )
     // Çekirdek parlaklık nabzı
     val orbGlow by inf.animateFloat(
@@ -101,26 +88,6 @@ fun AiOrbBadge(
             val cy  = s.height / 2f
 
             val driftRad = orbDrift    * PI / 180.0
-            val hueRad   = orbHueDrift * PI / 180.0
-
-            // ── Katman 1: Dış halo — clip dışında, orb sınırından taşar ────
-            val haloSlip   = r * 0.30f
-            val haloCx     = cx + (cos(hueRad) * haloSlip).toFloat()
-            val haloCy     = cy + (sin(hueRad) * haloSlip).toFloat()
-            val haloRadius = r * orbBreathe * 2.2f
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(
-                        YkbPrimary.copy(alpha = 0.18f),
-                        YkbNavyPurple.copy(alpha = 0.10f),
-                        Color.Transparent
-                    ),
-                    center = Offset(haloCx, haloCy),
-                    radius = haloRadius
-                ),
-                radius = haloRadius,
-                center = Offset(haloCx, haloCy)
-            )
 
             // Katman 2–8 orb çemberine clip'lenir
             val orbClip = Path().apply {
