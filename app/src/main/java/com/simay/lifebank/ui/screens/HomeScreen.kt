@@ -43,6 +43,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountBalance
 import androidx.compose.material.icons.rounded.AccountBalanceWallet
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.DirectionsCar
 import androidx.compose.material.icons.rounded.Flight
 import androidx.compose.material.icons.rounded.Groups
@@ -72,6 +73,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.simay.lifebank.ui.components.AiOrbBadge
 import com.simay.lifebank.ui.components.animateCountUp
 import com.simay.lifebank.ui.theme.Stone
 import com.simay.lifebank.ui.theme.Bark
@@ -416,6 +418,7 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
                         logoRes = R.drawable.ic_vb_logo,
                         onClick = { onNavigate("finans") }
                     )
+                    AddCardGhostCard(onClick = { onNavigate("finans") })
                 }
             }
         }
@@ -888,6 +891,33 @@ private fun MagazineCoverCard(
     }
 }
 
+
+@Composable
+private fun AddCardGhostCard(onClick: () -> Unit) {
+    val shape = RoundedCornerShape(18.dp)
+    Box(
+        modifier = Modifier
+            .width(56.dp)
+            .height(190.dp)
+            .clip(shape)
+            .background(YkbSurfaceCard)
+            .border(1.dp, YkbBorderHairline, shape)
+            .clickable(role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Box(
+            modifier = Modifier.size(50.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Add,
+                contentDescription = "Yeni kart ekle",
+                tint = YkbNeutral500,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+    }
+}
 
 @Composable
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
