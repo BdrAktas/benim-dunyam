@@ -2,11 +2,15 @@ package com.simay.lifebank.ui.screens
 
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
@@ -408,7 +412,7 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
                         style = YkbType.Heading3.copy(color = Color.White)
                     )
                     Text(
-                        text = "Ekle +",
+                        text = "Tüm Kartlarım",
                         style = YkbType.BodySm.copy(
                             color = Color.White.copy(alpha = 0.9f),
                             fontWeight = FontWeight.SemiBold,
@@ -968,7 +972,7 @@ private fun BenimDunyamMagazine(
             state = pagerState,
             contentPadding = PaddingValues(horizontal = 32.dp),
             pageSpacing = Spacing.sm,
-            modifier = Modifier.height(360.dp)
+            modifier = Modifier.height(280.dp)
         ) { pageIndex ->
             val offset = (pagerState.currentPage - pageIndex + pagerState.currentPageOffsetFraction)
                 .let { if (it.isNaN()) 0f else it }
@@ -1025,40 +1029,83 @@ private fun cardContent(id: String): CardContent = when (id) {
     "evim" -> CardContent(
         eventLine = "Doğalgaz son gün,\nödenmedi",
         metric = "₺847",
-        metricLabel = "bugünkü fatura tutarın",
-        cta = "Şimdi Öde"
+        metricLabel = "aylık fatura tutarın",
+        cta = "Evim'e Git"
     )
     "aracim" -> CardContent(
         eventLine = "Kaskon 15 gün\nsonra bitiyor",
         metric = "₺8.500",
         metricLabel = "tahmini yenileme primin",
-        cta = "Teklif Al"
+        cta = "Aracım'a Git"
     )
     "seyahat" -> CardContent(
         eventLine = "Antalya tatiline\n18 gün kaldı",
         metric = "₺28.500",
         metricLabel = "tahmini tatil bütçen",
-        cta = "Güvenceye Al"
+        cta = "Seyahatim'e Git"
     )
     "saglik" -> CardContent(
         eventLine = "Check-up randevun\n34 gün sonra",
         metric = "%82",
         metricLabel = "yıllık sigortandan kalan",
-        cta = "Randevu Al"
+        cta = "Sağlığım'a Git"
     )
     "ailem" -> CardContent(
         eventLine = "Üniversite harcına\n18 gün kaldı",
         metric = "₺8.500",
         metricLabel = "harç için eksik tutarın",
-        cta = "Transferi Planla"
+        cta = "Ailem'e Git"
     )
     "param" -> CardContent(
-        eventLine = "Vadesiz paran\naylık ₺320 eriyor",
+        eventLine = "Sınırsız hesap ile\nher gün kazan",
         metric = "%52",
         metricLabel = "e-Mevduat güncel faiz",
-        cta = "Seçenekleri Gör"
+        cta = "Param'a Git"
     )
-    else -> CardContent("", "", "", "İncele")
+    else -> CardContent("", "", "", "Keşfet")
+}
+
+@Composable
+private fun AiOrbBadge(modifier: Modifier = Modifier) {
+    val inf = rememberInfiniteTransition(label = "aiOrb")
+    val rotation by inf.animateFloat(
+        initialValue = 0f, targetValue = 360f,
+        animationSpec = infiniteRepeatable(tween(2800, easing = LinearEasing), RepeatMode.Restart),
+        label = "orbRot"
+    )
+    val pulse by inf.animateFloat(
+        initialValue = 0.88f, targetValue = 1.12f,
+        animationSpec = infiniteRepeatable(tween(1100, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "orbPulse"
+    )
+    Canvas(
+        modifier = modifier
+            .size(26.dp)
+            .graphicsLayer { scaleX = pulse; scaleY = pulse }
+    ) {
+        // dönen iridescent gövde
+        rotate(rotation) {
+            drawCircle(
+                brush = Brush.sweepGradient(
+                    listOf(
+                        Color(0xFF7B2FF7),
+                        Color(0xFFE040FB),
+                        Color(0xFF00D4FF),
+                        Color(0xFF40C4FF),
+                        Color(0xFF7B2FF7),
+                    )
+                )
+            )
+        }
+        // cam parlaması — sol üst köşe
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(Color.White.copy(alpha = 0.58f), Color.Transparent),
+                center = Offset(size.width * 0.30f, size.height * 0.22f),
+                radius = size.minDimension * 0.36f
+            )
+        )
+    }
 }
 
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
@@ -1131,18 +1178,8 @@ private fun MagazineCoverCard(
                     style = YkbType.Heading2.copy(color = YkbNeutral900, fontWeight = FontWeight.SemiBold)
                 )
             }
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(YkbNeutral100)
-            ) {
-                Text("\u22EF", color = YkbNeutral500, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            }
+            AiOrbBadge()
         }
-
-        Spacer(Modifier.height(Spacing.sm))
 
         // Tek olay cümlesi — primary scan
         Text(
@@ -1171,31 +1208,29 @@ private fun MagazineCoverCard(
             )
         }
 
-        Spacer(Modifier.height(Spacing.md))
-
-        // Tek CTA — tam genişlik
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(Radius.button))
-                .background(accent)
-                .clickable(role = Role.Button, onClick = onClick)
-                .padding(vertical = Spacing.sm)
-        ) {
-            Text(
-                text = content.cta,
-                style = YkbType.BodyMd.copy(color = Color.White, fontWeight = FontWeight.SemiBold),
-                maxLines = 1
-            )
-            Spacer(Modifier.width(Spacing.xs))
-            Icon(
-                imageVector = Icons.Rounded.OpenInNew,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(14.dp)
-            )
+        // Sağa yaslı navigasyon CTA — pale tint fill, tap target 44dp
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
+                modifier = Modifier
+                    .clip(RoundedCornerShape(Radius.pill))
+                    .background(accent.copy(alpha = 0.12f))
+                    .clickable(role = Role.Button, onClick = onClick)
+                    .padding(horizontal = Spacing.md, vertical = Spacing.sm)
+            ) {
+                Text(
+                    text = content.cta,
+                    style = YkbType.BodySm.copy(color = accent, fontWeight = FontWeight.SemiBold),
+                    maxLines = 1
+                )
+                Icon(
+                    imageVector = Icons.Rounded.ChevronRight,
+                    contentDescription = null,
+                    tint = accent,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
         }
     }
 }
