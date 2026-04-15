@@ -17,11 +17,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -81,7 +84,9 @@ fun AiOrbBadge(
             .then(clickMod),
         contentAlignment = Alignment.Center
     ) {
-        Canvas(modifier = Modifier.size(size)) {
+        Canvas(modifier = Modifier.size(size).graphicsLayer {
+            compositingStrategy = CompositingStrategy.Offscreen
+        }) {
             val s   = this.size
             val r   = s.minDimension / 2f
             val cx  = s.width  / 2f
@@ -191,6 +196,18 @@ fun AiOrbBadge(
                         )
                     }
                 }
+
+                // ── Kenar yumuşatma: dış %22 transparent'a çekiliyor ─────────
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colorStops = arrayOf(0.78f to Color.Black, 1.0f to Color.Transparent),
+                        center = Offset(cx, cy),
+                        radius = r
+                    ),
+                    radius = r,
+                    center = Offset(cx, cy),
+                    blendMode = BlendMode.DstIn
+                )
             }
         }
     }
