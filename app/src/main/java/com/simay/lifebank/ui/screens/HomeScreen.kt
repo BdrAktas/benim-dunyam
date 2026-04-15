@@ -48,6 +48,8 @@ import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.MonitorHeart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.OpenInNew
 import androidx.compose.material.icons.rounded.TrendingUp
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -116,6 +118,7 @@ import com.simay.lifebank.ui.theme.YkbNavyMid
 import com.simay.lifebank.ui.theme.YkbNavySoft
 import com.simay.lifebank.ui.theme.YkbNeutral700
 import com.simay.lifebank.ui.theme.YkbCanvas
+import com.simay.lifebank.ui.theme.YkbPrimary
 import com.simay.lifebank.ui.theme.YkbSurfaceCard
 import com.simay.lifebank.ui.theme.YkbType
 import com.simay.lifebank.ui.util.formatTRY
@@ -505,24 +508,24 @@ private fun CreditLimitsSection(
         modifier = Modifier
             .fillMaxWidth()
             .clip(shape)
-            .background(Color.White)
+            .background(YkbSurfaceCard)
             .border(1.dp, YkbBorderHairline, shape)
             .padding(horizontal = Spacing.xl, vertical = Spacing.xl),
         verticalArrangement = Arrangement.spacedBy(Spacing.md)
     ) {
         // Hero: kullanılabilir limit
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
             Text(
                 text = "Kullan\u0131labilir limitin",
                 style = YkbType.BodySm.copy(color = Stone)
             )
             Row(
                 verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
             ) {
                 Text(
                     text = formatTRY(overview.available),
-                    style = YkbType.NumericXl.copy(color = Moss, fontSize = 30.sp, lineHeight = 34.sp),
+                    style = YkbType.NumericXl.copy(color = Bark),
                     maxLines = 1,
                     softWrap = false
                 )
@@ -546,7 +549,9 @@ private fun CreditLimitsSection(
                 modifier = Modifier
                     .fillMaxHeight()
                     .fillMaxWidth(overview.usageRatio.coerceIn(0f, 1f))
-                    .background(Terra.copy(alpha = 0.7f))
+                    .background(
+                        if (overview.usageRatio >= 0.8f) Terra else YkbPrimary
+                    )
             )
         }
 
@@ -578,17 +583,24 @@ private fun CreditLimitsSection(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
+                .heightIn(min = 44.dp)
+                .clip(RoundedCornerShape(Radius.pill))
                 .clickable(role = Role.Button, onClick = onSeeAll)
-                .padding(vertical = 6.dp),
+                .padding(vertical = Spacing.sm),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "T\u00fcm\u00fcn\u00fc \u0130ncele",
+                text = "Tümünü İncele",
                 style = YkbType.BodyMd.copy(color = Sky, fontWeight = FontWeight.SemiBold)
             )
-            Text("  \u2197", color = Sky, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.width(Spacing.xs))
+            Icon(
+                imageVector = Icons.Rounded.OpenInNew,
+                contentDescription = null,
+                tint = Sky,
+                modifier = Modifier.size(16.dp)
+            )
         }
     }
 }
