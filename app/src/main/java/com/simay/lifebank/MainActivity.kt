@@ -77,6 +77,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.simay.lifebank.ui.navigation.Screen
 import com.simay.lifebank.ui.navigation.bottomTabs
+import com.simay.lifebank.ui.screens.AiAssistantScreen
 import com.simay.lifebank.ui.screens.AilemScreen
 import com.simay.lifebank.ui.screens.AracimScreen
 import com.simay.lifebank.ui.screens.EvimScreen
@@ -244,6 +245,15 @@ fun LifeBankApp() {
                 }
                 composable(Screen.Ailem.route) {
                     AilemScreen(onBack = { navController.popBackStack() })
+                }
+                composable(Screen.AiAssistant.route) {
+                    AiAssistantScreen(
+                        onBack = { navController.popBackStack() },
+                        onNavigate = { route ->
+                            activePanel = null
+                            navController.navigate(route) { launchSingleTop = true }
+                        }
+                    )
                 }
             }
         }
