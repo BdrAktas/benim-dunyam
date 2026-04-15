@@ -59,6 +59,11 @@ import com.simay.lifebank.ui.theme.SerifFont
 import com.simay.lifebank.ui.theme.Sky
 import com.simay.lifebank.ui.theme.Stone
 import com.simay.lifebank.ui.theme.Terra
+import com.simay.lifebank.ui.components.ExpenseCategory
+import com.simay.lifebank.ui.components.ExpenseMerchant
+import com.simay.lifebank.ui.components.ExpenseSummary
+import com.simay.lifebank.ui.components.GiderlerTab
+import com.simay.lifebank.ui.theme.Teal
 import com.simay.lifebank.ui.util.formatTRY
 
 private data class FamilyMember(
@@ -91,6 +96,27 @@ private data class ChildTransaction(
 @Composable
 fun AilemScreen(onBack: () -> Unit) {
     var tab by remember { mutableStateOf("butce") }
+    val ailemSummary = remember {
+        ExpenseSummary(
+            totalAmount = 7920,
+            changePercent = 15,
+            topCategory = "Eğitim/Okul",
+            topAmount = 3800,
+            categories = listOf(
+                ExpenseCategory("Eğitim/Okul",  3800,  2, 48, Teal),
+                ExpenseCategory("Market",       2640, 14, 33, Teal.copy(alpha = 0.7f)),
+                ExpenseCategory("Giyim",         980,  4, 12, Teal.copy(alpha = 0.5f)),
+                ExpenseCategory("Oyuncak/Kitap", 500,  3,  6, Teal.copy(alpha = 0.35f))
+            ),
+            merchants = listOf(
+                ExpenseMerchant("Özel Okul",   "Eğitim",  3800, 1),
+                ExpenseMerchant("Migros",      "Market",  1640, 8),
+                ExpenseMerchant("CarrefourSA", "Market",  1000, 6),
+                ExpenseMerchant("LC Waikiki",  "Giyim",    980, 4),
+                ExpenseMerchant("Toyzzshop",   "Oyuncak",  500, 3)
+            )
+        )
+    }
     var allowance by remember { mutableStateOf("500") }
     var editingA by remember { mutableStateOf(false) }
     val familyTotal = animateCountUp(target = 33500, duration = 800)
@@ -145,7 +171,8 @@ fun AilemScreen(onBack: () -> Unit) {
                 tabs = listOf(
                     TabItem(id = "butce", label = "Bütçe"),
                     TabItem(id = "hedef", label = "Hedefler"),
-                    TabItem(id = "cocuk", label = "Çocuk")
+                    TabItem(id = "cocuk", label = "Çocuk"),
+                    TabItem(id = "giderler", label = "Giderlerim")
                 ),
                 activeId = tab,
                 onTabChange = { tab = it }
@@ -164,6 +191,10 @@ fun AilemScreen(onBack: () -> Unit) {
                     editingA = editingA,
                     onEditingChange = { editingA = it }
                 )
+            }
+            // ---- TAB: Giderlerim ----
+            if (tab == "giderler") {
+                GiderlerTab(summary = ailemSummary, accent = Teal)
             }
         }
     }
