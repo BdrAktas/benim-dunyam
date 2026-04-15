@@ -14,6 +14,7 @@ sealed class Screen(val route: String) {
     data object Aracim : Screen("aracim")
     data object Saglik : Screen("saglik")
     data object Ailem : Screen("ailem")
+    data object AiAssistant : Screen("ai_assistant")
 }
 
 data class BottomTab(
