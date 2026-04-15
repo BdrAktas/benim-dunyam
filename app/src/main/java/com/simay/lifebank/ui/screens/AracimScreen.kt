@@ -33,6 +33,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.simay.lifebank.ui.components.AnimatedProgress
+import com.simay.lifebank.ui.components.ExpenseCategory
+import com.simay.lifebank.ui.components.ExpenseMerchant
+import com.simay.lifebank.ui.components.ExpenseSummary
+import com.simay.lifebank.ui.components.GiderlerTab
 import com.simay.lifebank.ui.components.DomainHeader
 import com.simay.lifebank.ui.components.GlassButton
 import com.simay.lifebank.ui.components.GlassIntensity
@@ -41,7 +45,6 @@ import com.simay.lifebank.ui.components.GlassSurface
 import com.simay.lifebank.ui.components.GlassTabs
 import com.simay.lifebank.ui.components.InfoBadge
 import com.simay.lifebank.ui.components.ProductCard
-import com.simay.lifebank.ui.components.ProactiveOffer
 import com.simay.lifebank.ui.components.TabItem
 import com.simay.lifebank.ui.components.animateCountUp
 import com.simay.lifebank.ui.theme.Bark
@@ -63,13 +66,6 @@ private data class MaintenanceItem(
     val interval: String,
     val next: String,
     val urgent: Boolean
-)
-
-private data class CostItem(
-    val label: String,
-    val amount: Int,
-    val color: Color,
-    val percent: Int
 )
 
 private fun formatKm(value: Int): String {
@@ -97,11 +93,24 @@ fun AracimScreen(onBack: () -> Unit, intent: String? = null) {
         )
     }
 
-    val costs = remember {
-        listOf(
-            CostItem("Yakıt", 3240, Terra, 89),
-            CostItem("OGS/HGS", 245, Sky, 7),
-            CostItem("Otopark", 120, Lav, 4)
+    val aracimSummary = remember {
+        ExpenseSummary(
+            totalAmount = 3605,
+            changePercent = 3,
+            topCategory = "Yakıt",
+            topAmount = 3240,
+            categories = listOf(
+                ExpenseCategory("Yakıt",   3240, 8, 90, Moss),
+                ExpenseCategory("OGS/HGS",  245, 3,  7, Sky),
+                ExpenseCategory("Otopark",  120, 4,  3, Lav)
+            ),
+            merchants = listOf(
+                ExpenseMerchant("Shell",      "Yakıt",   1840, 3),
+                ExpenseMerchant("BP",         "Yakıt",    980, 3),
+                ExpenseMerchant("Opet",       "Yakıt",    420, 2),
+                ExpenseMerchant("OGS Geçiş",  "OGS/HGS",  245, 3),
+                ExpenseMerchant("İSPARK",     "Otopark",  120, 4)
+            )
         )
     }
 
@@ -124,7 +133,7 @@ fun AracimScreen(onBack: () -> Unit, intent: String? = null) {
                 tabs = listOf(
                     TabItem("genel", "Genel"),
                     TabItem("bakim", "Bakım"),
-                    TabItem("maliyet", "Maliyet")
+                    TabItem("giderler", "Giderlerim")
                 ),
                 activeId = tab,
                 onTabChange = { tab = it }
@@ -467,59 +476,9 @@ fun AracimScreen(onBack: () -> Unit, intent: String? = null) {
                 }
             }
 
-            // ---- TAB: Maliyet ----
-            if (tab == "maliyet") {
-                costs.forEachIndexed { i, c ->
-                    GlassSurface(
-                        animate = true,
-                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 6.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = c.label,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Bark,
-                                fontFamily = SansFont
-                            )
-                            Text(
-                                text = formatTRY(c.amount),
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Bark,
-                                fontFamily = SansFont
-                            )
-                        }
-                        AnimatedProgress(
-                            value = c.percent.toFloat(),
-                            max = 100f,
-                            color = c.color,
-                            height = 5.dp,
-                            delayMs = i * 150
-                        )
-                    }
-                }
-
-                ProactiveOffer(
-                    emoji = "\uD83D\uDE97",
-                    title = "Taşıt Kredisi",
-                    limit = 450000,
-                    rate = "%2.79",
-                    term = "60 aya kadar",
-                    desc = "Araç değişikliği düşünüyorsanız, size özel hazırlandı.",
-                    cta = "Başvur",
-                    color = Honey,
-                    highlight = true,
-                    socialProof = "Bu ay 3.800 araç kredisi kullanıldı",
-                    savingsVs = "Aylık taksit ₺9.800 — araç kiralama maliyetinden düşük",
-                    authority = "Ön Onaylı"
-                )
+            // ---- TAB: Giderlerim ----
+            if (tab == "giderler") {
+                GiderlerTab(summary = aracimSummary, accent = Moss)
             }
         }
     }
