@@ -38,6 +38,10 @@ import androidx.compose.ui.unit.sp
 import com.simay.lifebank.ui.components.AnimatedProgress
 import com.simay.lifebank.ui.components.ChecklistRow
 import com.simay.lifebank.ui.components.DomainHeader
+import com.simay.lifebank.ui.components.ExpenseCategory
+import com.simay.lifebank.ui.components.ExpenseMerchant
+import com.simay.lifebank.ui.components.ExpenseSummary
+import com.simay.lifebank.ui.components.GiderlerTab
 import com.simay.lifebank.ui.components.GlassButton
 import com.simay.lifebank.ui.components.GlassIntensity
 import com.simay.lifebank.ui.components.GlassPill
@@ -88,6 +92,27 @@ private data class PackCategory(
 @Composable
 fun SeyahatScreen(onBack: () -> Unit, intent: String? = null) {
     var tab by remember { mutableStateOf("plan") }
+    val seyahatSummary = remember {
+        ExpenseSummary(
+            totalAmount = 12450,
+            changePercent = 34,
+            topCategory = "Konaklama",
+            topAmount = 6800,
+            categories = listOf(
+                ExpenseCategory("Konaklama",   6800, 2, 55, Lav),
+                ExpenseCategory("Uçak/Ulaşım", 3200, 3, 26, Lav.copy(alpha = 0.7f)),
+                ExpenseCategory("Yemek",       1650, 9, 13, Lav.copy(alpha = 0.5f)),
+                ExpenseCategory("Aktivite",     800, 4,  6, Lav.copy(alpha = 0.35f))
+            ),
+            merchants = listOf(
+                ExpenseMerchant("Hilton Antalya", "Konaklama",    6800, 1),
+                ExpenseMerchant("Türk Hava Y.",   "Uçak",         2400, 2),
+                ExpenseMerchant("Lokantalar",     "Yemek",        1650, 9),
+                ExpenseMerchant("Pegasus",        "Uçak",          800, 1),
+                ExpenseMerchant("Tekne Turu",     "Aktivite",      800, 1)
+            )
+        )
+    }
     LaunchedEffect(intent) {
         when (intent) {
             "travel_insurance_quote" -> tab = "plan"
@@ -243,7 +268,8 @@ fun SeyahatScreen(onBack: () -> Unit, intent: String? = null) {
                 tabs = listOf(
                     TabItem("plan", "Gün Planı"),
                     TabItem("docs", "Belgeler"),
-                    TabItem("packing", "Çanta")
+                    TabItem("packing", "Çanta"),
+                    TabItem("giderler", "Giderlerim")
                 ),
                 activeId = tab,
                 onTabChange = { tab = it }
@@ -637,6 +663,11 @@ fun SeyahatScreen(onBack: () -> Unit, intent: String? = null) {
                         )
                     }
                 }
+            }
+
+            // ---- TAB: Giderlerim ----
+            if (tab == "giderler") {
+                GiderlerTab(summary = seyahatSummary, accent = Lav)
             }
 
             // ---- TAB: Çanta ----
