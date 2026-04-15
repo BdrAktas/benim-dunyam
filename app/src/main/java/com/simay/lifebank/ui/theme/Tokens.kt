@@ -29,6 +29,11 @@ object Radius {
     val hero = 28.dp         // navy hero bottom-corner radius
 }
 
+object OrbSize {
+    val small = 26.dp   // magazin kartı badge
+    val large = 160.dp  // AI asistan ekranı hero
+}
+
 object Elevation {
     val hairline = 0.5.dp
     val card = 2.dp

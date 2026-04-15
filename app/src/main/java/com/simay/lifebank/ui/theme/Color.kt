@@ -110,3 +110,6 @@ val AccentDefault = YkbNeutral100
 
 // App background — serin nötr kanvas (navy hero ile aynı sıcaklıkta)
 val BgBase = YkbCanvas
+
+// AI Orb — dekoratif token, semantic interface'e eklenmez
+val YkbIridescentRose = Color(0xFFC084FC)  // orb üçüncü blob; YkbAccentPurple→YkbPrimaryLight köprüsü
