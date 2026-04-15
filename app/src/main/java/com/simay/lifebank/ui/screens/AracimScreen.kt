@@ -32,7 +32,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.simay.lifebank.ui.components.AnimatedProgress
 import com.simay.lifebank.ui.components.ExpenseCategory
 import com.simay.lifebank.ui.components.ExpenseMerchant
 import com.simay.lifebank.ui.components.ExpenseSummary
@@ -48,7 +47,6 @@ import com.simay.lifebank.ui.components.ProductCard
 import com.simay.lifebank.ui.components.TabItem
 import com.simay.lifebank.ui.components.animateCountUp
 import com.simay.lifebank.ui.theme.Bark
-import com.simay.lifebank.ui.theme.BarkMid
 import com.simay.lifebank.ui.theme.Honey
 import com.simay.lifebank.ui.theme.Lav
 import com.simay.lifebank.ui.theme.Moss
@@ -57,7 +55,6 @@ import com.simay.lifebank.ui.theme.SerifFont
 import com.simay.lifebank.ui.theme.Sky
 import com.simay.lifebank.ui.theme.Stone
 import com.simay.lifebank.ui.theme.Terra
-import com.simay.lifebank.ui.util.formatTRY
 import java.text.NumberFormat
 import java.util.Locale
 
