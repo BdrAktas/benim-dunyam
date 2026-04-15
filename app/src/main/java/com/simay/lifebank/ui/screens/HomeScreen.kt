@@ -1013,83 +1013,52 @@ private fun BenimDunyamMagazine(
     }
 }
 
-private data class Pill(
-    val text: String,
-    val actionText: String? = null,
-    val actionColor: Color = Terra,
-    val actionRoute: String? = null  // navigate here when actionText tapped
-)
 
 private data class CardContent(
-    val emoji: String,
-    val title: String,
-    val pills: List<Pill>,
-    val bigValue: String,
-    val bigValueSuffix: String,
-    val footnote: String,
-    val cta: String
+    val eventLine: String,    // tek cümle — en yüksek öncelikli olay
+    val metric: String,       // ilgili sayısal değer (accent renkte büyük)
+    val metricLabel: String,  // metriğin bağlamı (stone, küçük)
+    val cta: String           // tek net aksiyon
 )
 
 private fun cardContent(id: String): CardContent = when (id) {
     "evim" -> CardContent(
-        emoji = "\uD83C\uDFE0",
-        title = "Yakla\u015fan 3 fatura\n\u00f6demen var",
-        pills = listOf(
-            Pill("Su Bug\u00fcn", actionText = "\u00d6de", actionColor = Terra, actionRoute = "evim?intent=pay_bill&provider=iski"),
-            Pill("Elektrik Yar\u0131n"),
-            Pill("Do\u011falgaz Son 2 G\u00fcn")
-        ),
-        bigValue = "\u20BA6.990",
-        bigValueSuffix = "",
-        footnote = "Bu ay toplam ev giderin",
-        cta = "Giderleri G\u00f6r"
+        eventLine = "Doğalgaz son gün,\nödenmedi",
+        metric = "₺847",
+        metricLabel = "bugünkü fatura tutarın",
+        cta = "Şimdi Öde"
     )
     "aracim" -> CardContent(
-        emoji = "\uD83D\uDE97",
-        title = "Kaskon 15 g\u00fcn\nsonra bitiyor",
-        pills = listOf(Pill("Hasars\u0131zl\u0131k indirimi"), Pill("\u00dccretsiz Mini Onar\u0131m"), Pill("S\u0131n\u0131rl\u0131 S\u00fcre 2000 TL ek indirim")),
-        bigValue = "\u20BA8.500",
-        bigValueSuffix = "",
-        footnote = "Tahmini yenileme primin",
-        cta = "Detaylar\u0131 G\u00f6r"
+        eventLine = "Kaskon 15 gün\nsonra bitiyor",
+        metric = "₺8.500",
+        metricLabel = "tahmini yenileme primin",
+        cta = "Teklif Al"
     )
     "seyahat" -> CardContent(
-        emoji = "\u2708\uFE0F",
-        title = "Antalya tatiline\n18 g\u00fcn kald\u0131",
-        pills = listOf(Pill("Sigorta eksik"), Pill("D\u00f6viz \u20BA14.200"), Pill("Pasaport ge\u00e7erli")),
-        bigValue = "\u20BA28.500",
-        bigValueSuffix = "",
-        footnote = "Tahmini tatil b\u00fct\u00e7en",
-        cta = "G\u00fcvenceye al"
+        eventLine = "Antalya tatiline\n18 gün kaldı",
+        metric = "₺28.500",
+        metricLabel = "tahmini tatil bütçen",
+        cta = "Güvenceye Al"
     )
     "saglik" -> CardContent(
-        emoji = "\u2764\uFE0F",
-        title = "TSS limitinin\n%82'si sende",
-        pills = listOf(Pill("Check-up 34 g\u00fcn sonra"), Pill("Bu ay \u20BA0 kulland\u0131n"), Pill("3 km'de 4 merkez")),
-        bigValue = "%82",
-        bigValueSuffix = "",
-        footnote = "Y\u0131ll\u0131k limitinden kalan",
-        cta = "Randevu al"
+        eventLine = "Check-up randevun\n34 gün sonra",
+        metric = "%82",
+        metricLabel = "yıllık sigortandan kalan",
+        cta = "Randevu Al"
     )
     "ailem" -> CardContent(
-        emoji = "\uD83D\uDC6A",
-        title = "\u00dcniversite harc\u0131na\n18 g\u00fcn kald\u0131",
-        pills = listOf(Pill("Har\u00e7 1 May"), Pill("\u0130lk Param \u20BA42K"), Pill("Devlet katk\u0131s\u0131 \u20BA6.200")),
-        bigValue = "\u20BA8.500",
-        bigValueSuffix = "",
-        footnote = "Har\u00e7 i\u00e7in eksik tutar\u0131n",
-        cta = "Transferi planla"
+        eventLine = "Üniversite harcına\n18 gün kaldı",
+        metric = "₺8.500",
+        metricLabel = "harç için eksik tutarın",
+        cta = "Transferi Planla"
     )
     "param" -> CardContent(
-        emoji = "\uD83D\uDCB0",
-        title = "Vadesiz paran\neriyor",
-        pills = listOf(Pill("e-Mevduat %52"), Pill("YUVAM TL %55"), Pill("Alt\u0131n \u20BA3.240/gr")),
-        bigValue = "~\u20BA320",
-        bigValueSuffix = "",
-        footnote = "Son 30 g\u00fcnde eriyen miktar",
-        cta = "3 se\u00e7ene\u011fi g\u00f6r"
+        eventLine = "Vadesiz paran\naylık ₺320 eriyor",
+        metric = "%52",
+        metricLabel = "e-Mevduat güncel faiz",
+        cta = "Seçenekleri Gör"
     )
-    else -> CardContent("", "", emptyList(), "", "", "", "İncele")
+    else -> CardContent("", "", "", "İncele")
 }
 
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
@@ -1173,115 +1142,64 @@ private fun MagazineCoverCard(
             }
         }
 
-        Spacer(Modifier.height(Spacing.xs))
+        Spacer(Modifier.height(Spacing.sm))
 
-        // Title — big, dark, 2 lines
+        // Tek olay cümlesi — primary scan
         Text(
-            text = content.title,
+            text = content.eventLine,
             style = YkbType.Display.copy(
                 color = YkbNeutral900,
-                fontSize = 24.sp,
-                lineHeight = 30.sp,
+                fontSize = 22.sp,
+                lineHeight = 28.sp,
                 fontWeight = FontWeight.Bold
             )
         )
 
-        // Pills row — wraps to next line if not enough horizontal space
-        androidx.compose.foundation.layout.FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            content.pills.forEach { p -> CardPill(p, onNavigate = onNavigate) }
-        }
-
-
         Spacer(Modifier.weight(1f))
 
-        // Footer: value block (left) + CTA (right), CTA top aligned with value top
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.Top,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.md)
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Row(
-                    verticalAlignment = Alignment.Bottom,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Text(
-                        text = content.bigValue,
-                        style = YkbType.NumericXl.copy(color = accent, fontSize = 30.sp, lineHeight = 34.sp),
-                        maxLines = 1,
-                        softWrap = false
-                    )
-                    if (content.bigValueSuffix.isNotEmpty()) {
-                        Text(
-                            text = content.bigValueSuffix,
-                            style = YkbType.BodyMd.copy(color = YkbNeutral500),
-                            modifier = Modifier.padding(bottom = 6.dp)
-                        )
-                    }
-                }
-                Text(
-                    text = content.footnote,
-                    style = YkbType.BodySm.copy(color = YkbNeutral500)
-                )
-            }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                modifier = Modifier
-                    .clip(RoundedCornerShape(22.dp))
-                    .background(accent)
-                    .clickable(role = Role.Button, onClick = onClick)
-                    .padding(horizontal = 14.dp, vertical = 9.dp)
-            ) {
-                Text(
-                    text = content.cta,
-                    style = YkbType.BodyMd.copy(color = Color.White, fontWeight = FontWeight.SemiBold),
-                    maxLines = 1
-                )
-                Text(
-                    text = "\u2197",
-                    color = Color.White,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun CardPill(pill: Pill, onNavigate: (String) -> Unit = {}) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier
-            .clip(RoundedCornerShape(Radius.pill))
-            .background(YkbNeutral100)
-            .border(1.dp, YkbBorderHairline, RoundedCornerShape(Radius.pill))
-            .padding(horizontal = 10.dp, vertical = 5.dp)
-    ) {
-        Text(
-            text = pill.text,
-            style = YkbType.BodySm.copy(color = YkbNeutral700, fontWeight = FontWeight.Medium)
-        )
-        if (pill.actionText != null) {
+        // Metrik + label
+        Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
             Text(
-                text = pill.actionText,
-                style = YkbType.BodySm.copy(
-                    color = pill.actionColor,
-                    fontWeight = FontWeight.Bold,
-                    textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline
-                ),
-                modifier = if (pill.actionRoute != null)
-                    Modifier.clickable(role = Role.Button) { onNavigate(pill.actionRoute) }
-                else Modifier
+                text = content.metric,
+                style = YkbType.NumericXl.copy(color = accent, fontSize = 30.sp, lineHeight = 34.sp),
+                maxLines = 1,
+                softWrap = false
+            )
+            Text(
+                text = content.metricLabel,
+                style = YkbType.BodySm.copy(color = YkbNeutral500)
+            )
+        }
+
+        Spacer(Modifier.height(Spacing.md))
+
+        // Tek CTA — tam genişlik
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(Radius.button))
+                .background(accent)
+                .clickable(role = Role.Button, onClick = onClick)
+                .padding(vertical = Spacing.sm)
+        ) {
+            Text(
+                text = content.cta,
+                style = YkbType.BodyMd.copy(color = Color.White, fontWeight = FontWeight.SemiBold),
+                maxLines = 1
+            )
+            Spacer(Modifier.width(Spacing.xs))
+            Icon(
+                imageVector = Icons.Rounded.OpenInNew,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(14.dp)
             )
         }
     }
 }
+
 
 // ═══ PER-DOMAIN CONTENT (hardcoded mock data for this iteration) ═══
 // TODO: wire to real data sources — each card is a snapshot of that domain's state.
