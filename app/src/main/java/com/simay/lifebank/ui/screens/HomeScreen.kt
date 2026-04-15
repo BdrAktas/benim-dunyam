@@ -151,6 +151,7 @@ private data class CreditLimit(
     val id: String,
     val name: String,
     val icon: androidx.compose.ui.graphics.vector.ImageVector,
+    @DrawableRes val illustrationRes: Int? = null,
     val totalLimit: Int,
     val used: Int,
     val accent: Color,
@@ -251,15 +252,17 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
             id = "ihtiyac",
             name = "İhtiyaç Kredisi",
             icon = Icons.Rounded.AccountBalanceWallet,
+            // illustrationRes = R.drawable.ic_stitch_ihtiyac,  // TODO: wallet doodle eklenince aktif et
             totalLimit = 150000,
             used = 35000,
-            accent = YkbDomainParam,
+            accent = YkbPrimary,            // KMH'dan ayrışması için mavi
             route = "finans"
         ),
         CreditLimit(
             id = "tasit",
             name = "Taşıt Kredisi ön onay",
             icon = Icons.Rounded.DirectionsCar,
+            illustrationRes = R.drawable.ic_stitch_aracim,
             totalLimit = 120000,
             used = 0,
             accent = YkbDomainAracim,
@@ -269,6 +272,7 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
             id = "konut",
             name = "Konut Kredisi ön onay",
             icon = Icons.Rounded.Home,
+            illustrationRes = R.drawable.ic_stitch_evim,
             totalLimit = 500000,
             used = 0,
             accent = YkbDomainEvim,
@@ -278,6 +282,7 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
             id = "kmh",
             name = "KMH",
             icon = Icons.Rounded.AccountBalance,
+            illustrationRes = R.drawable.ic_stitch_param,
             totalLimit = 25000,
             used = 0,
             accent = YkbDomainParam,
@@ -618,19 +623,29 @@ private fun CreditLimitRow(limit: CreditLimit, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.md)
     ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(limit.accent.copy(alpha = 0.12f))
-        ) {
-            Icon(
-                imageVector = limit.icon,
+        if (limit.illustrationRes != null) {
+            Image(
+                painter = painterResource(limit.illustrationRes),
                 contentDescription = null,
-                tint = limit.accent,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(Radius.iconBg))
             )
+        } else {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(Radius.iconBg))
+                    .background(limit.accent.copy(alpha = 0.12f))
+            ) {
+                Icon(
+                    imageVector = limit.icon,
+                    contentDescription = null,
+                    tint = limit.accent,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
         Column(modifier = Modifier.weight(1f)) {
             Text(
