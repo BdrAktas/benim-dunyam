@@ -2,17 +2,18 @@ package com.simay.lifebank.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.Canvas
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -32,7 +33,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import com.simay.lifebank.ui.components.AiOrbBadge
+
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountBalance
 import androidx.compose.material.icons.rounded.ArrowBack
@@ -46,12 +47,14 @@ import androidx.compose.material.icons.rounded.MonitorHeart
 import androidx.compose.material.icons.rounded.Stop
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -63,20 +66,17 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
-import com.simay.lifebank.ui.theme.YkbAccentPurple
-import com.simay.lifebank.ui.theme.YkbIridescentRose
-import com.simay.lifebank.ui.theme.YkbPrimary
-import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.sin
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+
+import com.simay.lifebank.ui.components.AiOrbBadge
 import com.simay.lifebank.ui.theme.Bark
 import com.simay.lifebank.ui.theme.Radius
 import com.simay.lifebank.ui.theme.Spacing
 import com.simay.lifebank.ui.theme.Stone
 import com.simay.lifebank.ui.theme.Terra
+import com.simay.lifebank.ui.theme.YkbAccentPurple
 import com.simay.lifebank.ui.theme.YkbBorderHairline
 import com.simay.lifebank.ui.theme.YkbCanvas
 import com.simay.lifebank.ui.theme.YkbDomainAilem
@@ -85,11 +85,17 @@ import com.simay.lifebank.ui.theme.YkbDomainEvim
 import com.simay.lifebank.ui.theme.YkbDomainParam
 import com.simay.lifebank.ui.theme.YkbDomainSaglik
 import com.simay.lifebank.ui.theme.YkbDomainSeyahat
+import com.simay.lifebank.ui.theme.YkbIridescentRose
 import com.simay.lifebank.ui.theme.YkbNavyDeep
 import com.simay.lifebank.ui.theme.YkbNavyPurple
 import com.simay.lifebank.ui.theme.YkbNavySoft
+import com.simay.lifebank.ui.theme.YkbPrimary
 import com.simay.lifebank.ui.theme.YkbSurfaceCard
 import com.simay.lifebank.ui.theme.YkbType
+
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -126,7 +132,7 @@ private fun AmbientLayer() {
         val xAmp = w * 0.30f
         val yAmp = h * 0.20f
 
-        val phase1 = 0f
+        val phase1 = 0f // 0° — symmetry with phase2/phase3/phase4
         val phase2 = (2.0 * PI / 3.0).toFloat()   // 120°
         val phase3 = (4.0 * PI / 3.0).toFloat()   // 240°
         val phase4 = (PI / 3.0).toFloat()          //  60°
