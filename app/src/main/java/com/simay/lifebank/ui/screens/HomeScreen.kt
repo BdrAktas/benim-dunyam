@@ -1,6 +1,5 @@
 package com.simay.lifebank.ui.screens
 
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -42,7 +41,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material.icons.rounded.AccountBalance
 import androidx.compose.material.icons.rounded.AccountBalanceWallet
 import androidx.compose.material.icons.rounded.DirectionsCar
@@ -53,18 +51,14 @@ import androidx.compose.material.icons.rounded.MonitorHeart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.rounded.ChevronRight
-import androidx.compose.material.icons.rounded.OpenInNew
+import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.automirrored.rounded.TrendingUp
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import kotlinx.coroutines.launch
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
@@ -107,12 +101,9 @@ import com.simay.lifebank.ui.theme.YkbCardGreen3
 import com.simay.lifebank.ui.theme.YkbCardPurple1
 import com.simay.lifebank.ui.theme.YkbCardPurple2
 import com.simay.lifebank.ui.theme.YkbCardPurple3
-import com.simay.lifebank.ui.theme.YkbDomainAilem
 import com.simay.lifebank.ui.theme.YkbDomainAracim
 import com.simay.lifebank.ui.theme.YkbDomainEvim
 import com.simay.lifebank.ui.theme.YkbDomainParam
-import com.simay.lifebank.ui.theme.YkbDomainSaglik
-import com.simay.lifebank.ui.theme.YkbDomainSeyahat
 import com.simay.lifebank.ui.theme.YkbNeutral100
 import com.simay.lifebank.ui.theme.YkbNeutral300
 import com.simay.lifebank.ui.theme.YkbNeutral500
@@ -120,7 +111,6 @@ import com.simay.lifebank.ui.theme.YkbNeutral900
 import com.simay.lifebank.ui.theme.YkbNavyDeep
 import com.simay.lifebank.ui.theme.YkbNavyMid
 import com.simay.lifebank.ui.theme.YkbNavySoft
-import com.simay.lifebank.ui.theme.YkbNeutral700
 import com.simay.lifebank.ui.theme.YkbCanvas
 import com.simay.lifebank.ui.theme.YkbPrimary
 import com.simay.lifebank.ui.theme.YkbSuccess
@@ -141,7 +131,7 @@ private data class WorldCard(
     val alertColor: Color,   // badge tint (Terra = acil, Honey = hatırlatma, domain = info)
     val color: Color,        // domain accent (sol bar + icon tint)
     val ctaRoute: String? = null,  // intent-carrying route; null → fallback to id
-    @DrawableRes val illustrationRes: Int? = null  // Stitch doodle; null → icon fallback
+    @field:DrawableRes val illustrationRes: Int? = null  // Stitch doodle; null → icon fallback
 )
 private data class CreditOverview(
     val totalLimit: Int,
@@ -155,7 +145,7 @@ private data class CreditLimit(
     val id: String,
     val name: String,
     val icon: androidx.compose.ui.graphics.vector.ImageVector,
-    @DrawableRes val illustrationRes: Int? = null,
+    @field:DrawableRes val illustrationRes: Int? = null,
     val totalLimit: Int,
     val used: Int,
     val accent: Color,
@@ -163,21 +153,6 @@ private data class CreditLimit(
 ) {
     val available: Int get() = totalLimit - used
 }
-
-private data class PaymentSchedule(
-    val dayLabel: String,   // "Bugün" / "Yarın" / "15 Nis"
-    val amount: Int,        // TRY
-    val title: String,      // "Su", "Elektrik", "Adios"
-    val domain: String,
-    val accent: Color,
-    val urgent: Boolean = false  // highlight today / overdue
-)
-
-private data class SmartFeedItem(
-    val type: String, val emoji: String, val title: String,
-    val sub: String, val amount: String? = null,
-    val color: Color, val domain: String, val cta: String? = null
-)
 
 @Composable
 fun HomeScreen(onNavigate: (String) -> Unit) {
@@ -187,12 +162,6 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
         hour < 18 -> "Merhaba"
         else -> "\u0130yi ak\u015famlar"
     }
-    val timeContext = when {
-        hour < 12 -> "morning"
-        hour < 18 -> "day"
-        else -> "evening"
-    }
-
     val balance = animateCountUp(47832)
     val cardAvailable = 75000 - 23456
 
@@ -230,24 +199,6 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
             timeLabel = "", moneyLabel = "",
             alertCount = 2, alertColor = Honey, color = Honey,
             illustrationRes = R.drawable.ic_stitch_param),
-    )
-
-    val smartFeed = listOf(
-        SmartFeedItem("urgent", "\uD83D\uDD25", "Do\u011falgaz faturas\u0131", "\u0130GDA\u015e \u00B7 Son g\u00fcn!", "\u20BA847", Terra, "evim", "\u015eimdi \u00d6de"),
-        SmartFeedItem("finance", "\u26A1", "Elektrik faturas\u0131", "22 Nis \u00B7 AYEDA\u015e", "\u20BA523", Honey, "evim"),
-        SmartFeedItem("finance", "\uD83D\uDCB3", "Adios kart borcu", "20 Nis \u00B7 son \u00f6deme", "\u20BA23.456", Lav, "finans"),
-        SmartFeedItem("life", "\uD83D\uDD27", "Ara\u00e7 bak\u0131m\u0131 gerekiyor", "Ya\u011f & fren balata \u00B7 48.200 km", null, Moss, "aracim"),
-        SmartFeedItem("life", "\uD83E\uDDF3", "Tokyo haz\u0131rl\u0131klar\u0131", "JR Pass al \u00B7 seyahat sigortas\u0131n\u0131 g\u00fcvenceye al", null, Lav, "seyahat"),
-        SmartFeedItem("life", "\uD83C\uDFE5", "Check-up randevusu", "15 May\u0131s \u00B7 Ac\u0131badem \u00B7 34 g\u00fcn", null, Rose, "saglik"),
-    )
-
-    // 7 günlük ödeme takvimi — sadece parasal + tarihi olan olaylar
-    val weeklySchedule = listOf(
-        PaymentSchedule("Bug\u00fcn",  189,    "Su",       "evim",   Sky,   urgent = true),
-        PaymentSchedule("Yar\u0131n",  523,    "Elektrik", "evim",   Honey),
-        PaymentSchedule("15 Nis",      847,    "Do\u011falgaz", "evim", Terra),
-        PaymentSchedule("18 Nis",      8920,   "Bonus Kart", "finans", Lav),
-        PaymentSchedule("20 Nis",      23456,  "Adios Kart", "finans", Lav),
     )
 
     // Sana özel kredi limitleri — toplam + kırılım
@@ -606,7 +557,7 @@ private fun CreditLimitsSection(
             )
             Spacer(Modifier.width(Spacing.xs))
             Icon(
-                imageVector = Icons.Rounded.OpenInNew,
+                imageVector = Icons.AutoMirrored.Rounded.OpenInNew,
                 contentDescription = null,
                 tint = Sky,
                 modifier = Modifier.size(16.dp)
@@ -695,269 +646,14 @@ private fun CreditLimitRow(limit: CreditLimit, onClick: () -> Unit) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// Weekly payment strip — 7 günlük nakit akışı agregasyonu (legacy)
-// ═══════════════════════════════════════════════════════════════
-
-@Composable
-private fun WeeklyPaymentStrip(
-    schedules: List<PaymentSchedule>,
-    onClick: (PaymentSchedule) -> Unit
-) {
-    androidx.compose.foundation.lazy.LazyRow(
-        contentPadding = PaddingValues(horizontal = Spacing.lg),
-        horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
-    ) {
-        items(schedules.size) { idx ->
-            val s = schedules[idx]
-            PaymentChip(s, onClick = { onClick(s) })
-        }
-    }
-}
-
-@Composable
-private fun PaymentChip(s: PaymentSchedule, onClick: () -> Unit) {
-    val shape = RoundedCornerShape(18.dp)
-    Column(
-        modifier = Modifier
-            .clip(shape)
-            .background(Color.White)
-            .border(1.dp, YkbBorderHairline, shape)
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 12.dp)
-            .width(118.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(6.dp)
-                    .clip(CircleShape)
-                    .background(s.accent)
-            )
-            Text(
-                text = s.dayLabel,
-                style = YkbType.BodySm.copy(
-                    color = if (s.urgent) Terra else Stone,
-                    fontWeight = if (s.urgent) FontWeight.Bold else FontWeight.SemiBold
-                )
-            )
-        }
-        Text(
-            text = formatTRY(s.amount),
-            style = YkbType.NumericMd.copy(color = Bark),
-            maxLines = 1,
-            softWrap = false
-        )
-        Text(
-            text = s.title,
-            style = YkbType.BodySm.copy(color = Stone),
-            maxLines = 1,
-            softWrap = false
-        )
-    }
-}
-
-// ═══════════════════════════════════════════════════════════════
 // Smart feed — 3-tier components (legacy, feed kaldırıldı)
 // ═══════════════════════════════════════════════════════════════
-
-@Composable
-private fun SmartFeedUrgent(item: SmartFeedItem, onClick: () -> Unit) {
-    val shape = RoundedCornerShape(Radius.card)
-    val tint = item.color
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(shape)
-            .background(tint)
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(Spacing.lg)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.md)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.18f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(item.emoji, fontSize = 20.sp)
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = item.title,
-                    style = YkbType.Heading3.copy(color = Color.White)
-                )
-                Text(
-                    text = item.sub,
-                    style = YkbType.BodySm.copy(color = Color.White.copy(alpha = 0.9f))
-                )
-            }
-            if (item.amount != null) {
-                Text(
-                    text = item.amount,
-                    style = YkbType.NumericMd.copy(color = Color.White)
-                )
-            }
-        }
-        if (item.cta != null) {
-            Spacer(Modifier.height(Spacing.md))
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 48.dp)
-                    .clip(RoundedCornerShape(Radius.button))
-                    .background(Color.White)
-                    .clickable(role = Role.Button, onClick = onClick)
-                    .padding(vertical = Spacing.md),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = item.cta,
-                    style = YkbType.Heading3.copy(color = tint, fontWeight = FontWeight.Bold)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun SmartFeedBillable(item: SmartFeedItem, onClick: () -> Unit) {
-    val shape = RoundedCornerShape(Radius.card)
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(shape)
-            .background(YkbSurfaceCard)
-            .border(Elevation.hairline, YkbBorderHairline, shape)
-            .clickable(role = Role.Button, onClick = onClick)
-    ) {
-        // Left accent bar
-        Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .width(3.dp)
-                .align(Alignment.CenterStart)
-                .background(item.color)
-        )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 56.dp)
-                .padding(start = Spacing.lg, end = Spacing.lg, top = Spacing.md, bottom = Spacing.md),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.md)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(RoundedCornerShape(Radius.iconBg))
-                    .background(item.color.copy(alpha = 0.10f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(item.emoji, fontSize = 16.sp)
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = item.title,
-                    style = YkbType.Heading3.copy(color = Bark)
-                )
-                Text(
-                    text = item.sub,
-                    style = YkbType.BodySm.copy(color = YkbNeutral500)
-                )
-            }
-            if (item.amount != null) {
-                Text(
-                    text = item.amount,
-                    style = YkbType.NumericMd.copy(color = item.color)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun SmartFeedInfo(item: SmartFeedItem, showDivider: Boolean, onClick: () -> Unit) {
-    Column {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 56.dp)
-                .clickable(role = Role.Button, onClick = onClick)
-                .padding(vertical = Spacing.sm),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.md)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(item.color.copy(alpha = 0.10f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(item.emoji, fontSize = 14.sp)
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = item.title,
-                    style = YkbType.Heading3.copy(color = Bark)
-                )
-                Text(
-                    text = item.sub,
-                    style = YkbType.BodySm.copy(color = YkbNeutral500)
-                )
-            }
-            Text(
-                text = "\u203A",
-                style = YkbType.Heading2.copy(color = YkbNeutral500)
-            )
-        }
-        if (showDivider) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(Elevation.hairline)
-                    .background(YkbBorderHairline)
-            )
-        }
-    }
-}
 
 // ═══════════════════════════════════════════════════════════════
 // BENIM DUNYAM — magazine stack
 // HorizontalPager + scale/alpha transforms for peek depth + big
 // editorial cover typography per domain.
 // ═══════════════════════════════════════════════════════════════
-
-private fun domainBg(id: String): Color = when (id) {
-    "evim" -> YkbDomainEvim
-    "aracim" -> YkbDomainAracim
-    "saglik" -> YkbDomainSaglik
-    "seyahat" -> YkbDomainSeyahat
-    "ailem" -> YkbDomainAilem
-    "param" -> YkbDomainParam
-    else -> YkbNeutral700
-}
-
-// Extract teaser number + unit from timeLabel
-private fun extractTeaser(timeLabel: String): Pair<String, String> {
-    val numRegex = Regex("(\\d+)\\s*(\\w+)")
-    val match = numRegex.find(timeLabel)
-    return if (match != null) {
-        match.groupValues[1] to match.groupValues[2]
-    } else {
-        // fallback — no numeric (e.g. "BES katkı · bu ay")
-        "—" to "bu ay"
-    }
-}
 
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
@@ -1245,97 +941,6 @@ private fun MagazineCoverCard(
     }
 }
 
-
-// ═══ PER-DOMAIN CONTENT (hardcoded mock data for this iteration) ═══
-// TODO: wire to real data sources — each card is a snapshot of that domain's state.
-
-@Composable
-private fun StatRow(label: String, value: String, valueBold: Boolean = false) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(Spacing.md),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label,
-            style = YkbType.BodySm.copy(color = Color.White.copy(alpha = 0.75f))
-        )
-        Text(
-            text = value,
-            style = YkbType.BodyMd.copy(
-                color = Color.White,
-                fontWeight = if (valueBold) FontWeight.Bold else FontWeight.SemiBold
-            ),
-            textAlign = TextAlign.End,
-            modifier = Modifier.weight(1f)
-        )
-    }
-}
-
-@Composable
-private fun PrimaryBlock(
-    topLabel: String,
-    primary: String,
-    secondary: String,
-    trendDelta: String? = null
-) {
-    Column {
-        Text(
-            text = topLabel,
-            style = YkbType.BodySm.copy(color = Color.White.copy(alpha = 0.75f))
-        )
-        Spacer(Modifier.height(2.dp))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
-        ) {
-            Text(
-                text = primary,
-                style = YkbType.NumericLg.copy(color = Color.White)
-            )
-            if (trendDelta != null) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(2.dp),
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(Radius.pill))
-                        .background(Color.White.copy(alpha = 0.22f))
-                        .padding(horizontal = Spacing.sm, vertical = 3.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.TrendingUp,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(14.dp)
-                    )
-                    Text(
-                        text = trendDelta,
-                        style = YkbType.BodySm.copy(
-                            color = Color.White,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    )
-                }
-            }
-        }
-        Text(
-            text = secondary,
-            style = YkbType.BodySm.copy(color = Color.White.copy(alpha = 0.85f))
-        )
-    }
-}
-
-@Composable
-private fun InfoCard(content: @Composable ColumnScope.() -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(Radius.card))
-            .background(Color.White.copy(alpha = 0.14f))
-            .padding(Spacing.md),
-        verticalArrangement = Arrangement.spacedBy(6.dp)
-    ) { content() }
-}
 
 @Composable
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
